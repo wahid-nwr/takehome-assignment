@@ -1,0 +1,121 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String   @unique
+
+  apiKeys   ApiKey[]
+  flags     FeatureFlag[]
+  audits    FlagAuditLog[]
+
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  keyHash   String   @unique
+  name      String?
+  revokedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+}
+
+model FeatureFlag {
+  id        String   @id @default(uuid())
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  key       String
+  name      String
+  description String?
+
+  type      FlagType
+  defaultValue Json
+
+  isActive   Boolean  @default(true)
+  isArchived Boolean  @default(false)
+
+  // IMPORTANT: environment scoped at flag level (simple take-home design)
+  environment Environment
+
+  rolloutPercentage Int @default(0)
+
+  audits    FlagAuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, key, environment])
+  @@index([tenantId, environment])
+}
+
+enum FlagType {
+  BOOLEAN
+  STRING
+  NUMBER
+}
+
+enum Environment {
+  DEVELOPMENT
+  STAGING
+  PRODUCTION
+}
+
+model FlagAuditLog {
+  id        String   @id @default(uuid())
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  flagId    String
+  flag      FeatureFlag @relation(fields: [flagId], references: [id], onDelete: Cascade)
+
+  action    AuditAction
+
+  previousValue Json?
+  newValue      Json?
+
+  changedBy String?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, flagId])
+  @@index([flagId])
+}
+
+enum AuditAction {
+  CREATED
+  UPDATED
+  ARCHIVED
+}
+
+model EvaluationCache {
+  id        String   @id @default(uuid())
+
+  tenantId  String
+
+  userId    String
+  environment Environment
+
+  result Json
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, userId, environment])
+  @@index([tenantId])
+}
