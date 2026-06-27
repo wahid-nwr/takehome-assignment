@@ -1,5 +1,6 @@
 import { AuditRepository } from './audit.repository';
 import { AuditAction } from './audit-action';
+import { AuditData } from "./audit-data";
 
 export class AuditService {
 
@@ -11,8 +12,8 @@ constructor(
         tenantId: string;
         flagId: string;
         action: AuditAction;
-        previousValue?: any;
-        newValue?: any;
+        previousValue?: AuditData;
+        newValue?: AuditData;
         changedBy?: string;
     }) {
 
