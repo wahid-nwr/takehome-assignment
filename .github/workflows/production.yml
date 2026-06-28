@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: docker-${{ github.event.workflow_run.head_branch }}
+      group: docker-production
       cancel-in-progress: true
 
     timeout-minutes: 20

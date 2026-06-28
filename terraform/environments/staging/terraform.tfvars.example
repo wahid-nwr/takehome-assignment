@@ -1,0 +1,5 @@
+project_id = "my-gcp-project"
+
+region = "asia-southeast1"
+
+image = "ghcr.io/my-org/feature-flag-service:latest"

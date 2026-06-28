@@ -1,0 +1,21 @@
+name: GCP Authentication
+
+description: Authenticate GitHub Actions to Google Cloud
+
+inputs:
+  workload-identity-provider:
+    required: true
+
+  service-account:
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ inputs.workload-identity-provider }}
+        service_account: ${{ inputs.service-account }}
+
+    - uses: google-github-actions/setup-gcloud@v2

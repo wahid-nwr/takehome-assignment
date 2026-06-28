@@ -11,17 +11,25 @@ permissions:
   contents: read
   packages: write
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: feature-flag-service
+
 jobs:
   docker:
+    name: Build & Publish Staging Image
+
     if: >
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'develop'
 
-    name: Build & Publish Staging Image
     runs-on: ubuntu-latest
 
+    environment:
+      name: staging
+
     concurrency:
-      group: docker-staging
+      group: publish-staging
       cancel-in-progress: true
 
     timeout-minutes: 20
@@ -32,11 +40,11 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Publish Docker image
+      - name: Build & Publish Docker Image
         uses: ./.github/actions/docker
         with:
           push: "true"
           github-token: ${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/feature-flag-service:staging
-            ghcr.io/${{ github.repository_owner }}/feature-flag-service:sha-${{ github.event.workflow_run.head_sha }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:staging
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:sha-${{ github.event.workflow_run.head_sha }}

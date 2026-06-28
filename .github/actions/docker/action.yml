@@ -5,24 +5,30 @@ description: Build and optionally publish Docker images
 inputs:
   context:
     required: false
+    description: All docker build and publishing
     default: .
 
   dockerfile:
     required: false
+    description: Dockerfile
     default: Dockerfile
 
   target:
     required: false
+    description: Target environment
     default: production
 
   tags:
+    description: Tag images
     required: true
 
   push:
     required: false
+    description: Push artifactory choice
     default: "false"
 
   github-token:
+    description: Github token requirement
     required: true
 
 runs:
