@@ -4,25 +4,15 @@ services:
   api:
     build:
       context: .
-      target: development
+      target: production
 
     container_name: feature-flag-api
-
-    env_file:
-      - .env.docker
 
     depends_on:
       postgres:
         condition: service_healthy
-
-    ports:
-      - "3000:3000"
-
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-
-    command: npm run dev
+      redis:
+        condition: service_healthy
 
     restart: unless-stopped
 
@@ -34,9 +24,6 @@ services:
       POSTGRES_DB: featureflags
       POSTGRES_USER: featureflags
       POSTGRES_PASSWORD: featureflags
-
-    ports:
-      - "6432:5432"
 
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -53,9 +40,6 @@ services:
     image: redis:7-alpine
     container_name: feature-flag-redis
 
-    ports:
-      - "6380:6379"
-
     command:
       - redis-server
       - --appendonly
@@ -64,17 +48,11 @@ services:
     volumes:
       - redis-data:/data
 
-    restart: unless-stopped
-
-  adminer:
-    image: adminer
-    container_name: feature-flag-adminer
-
-    ports:
-      - "8085:8080"
-
-    depends_on:
-      - postgres
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
     restart: unless-stopped
 

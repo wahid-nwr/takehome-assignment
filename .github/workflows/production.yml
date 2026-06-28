@@ -1,0 +1,46 @@
+name: Publish Production Image
+
+on:
+  workflow_run:
+    workflows:
+      - Continuous Integration
+    types:
+      - completed
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: feature-flag-service
+
+jobs:
+  docker:
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+
+    name: Build & Publish Production Image
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: docker-${{ github.event.workflow_run.head_branch }}
+      cancel-in-progress: true
+
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Publish Docker image
+        uses: ./.github/actions/docker
+        with:
+          push: "true"
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:sha-${{ github.event.workflow_run.head_sha }}

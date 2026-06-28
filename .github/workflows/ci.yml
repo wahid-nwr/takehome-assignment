@@ -82,6 +82,8 @@ jobs:
 
       - uses: ./.github/actions/setup-node
 
+      - uses: ./.github/actions/setup-prisma
+
       - uses: ./.github/actions/build
 
       - uses: actions/upload-artifact@v4

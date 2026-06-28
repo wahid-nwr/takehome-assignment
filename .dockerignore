@@ -1,0 +1,16 @@
+.git
+.github
+node_modules
+dist
+coverage
+docs
+tests
+.vscode
+.idea
+
+.env
+.env.local
+.env.staging
+.env.production
+
+*.log
