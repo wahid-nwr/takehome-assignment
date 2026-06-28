@@ -1,0 +1,37 @@
+services:
+  api:
+    build:
+      context: .
+      target: development
+
+    env_file:
+      - .env.local
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+
+    command: npm run dev
+
+  redis:
+    ports:
+      - "6380:6379"
+
+  postgres:
+    ports:
+      - "6432:5432"
+
+  adminer:
+    image: adminer
+    container_name: feature-flag-adminer
+
+    ports:
+      - "8085:8080"
+
+    depends_on:
+      - postgres
+
+    restart: unless-stopped

@@ -1,0 +1,6 @@
+services:
+  api:
+    image: ghcr.io/${GITHUB_OWNER}/feature-flag-service:${TAG:-latest}
+
+    env_file:
+      - .env.staging

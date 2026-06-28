@@ -1,0 +1,8 @@
+name: Generate Prisma Client
+description: Generate Prisma Client from the schema
+runs:
+  using: composite
+
+  steps:
+    - shell: bash
+      run: npm run prisma:generate

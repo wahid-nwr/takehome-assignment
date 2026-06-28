@@ -1,14 +1,9 @@
 name: Build Project
 
-description: Build application and Docker image
-
 runs:
   using: composite
 
   steps:
-
-    - shell: bash
+    - name: Build application
+      shell: bash
       run: npm run ci:build
-
-    - shell: bash
-      run: docker build -t feature-flag-service:${{ github.sha }} .
