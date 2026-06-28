@@ -49,17 +49,14 @@ jobs:
           --health-timeout=5s
           --health-retries=5
 
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/feature_flags
-      REDIS_URL: redis://localhost:6379
-      NODE_ENV: test
-
     steps:
       - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup-node
 
-      - uses: ./.github/actions/setup-prisma
+      - uses: ./.github/actions/prisma-migrate
+        env:
+          DATABASE_URL: ${{ vars.DATABASE_URL }}
 
       - uses: ./.github/actions/validate
 
@@ -82,7 +79,7 @@ jobs:
 
       - uses: ./.github/actions/setup-node
 
-      - uses: ./.github/actions/setup-prisma
+      - uses: ./.github/actions/prisma-generate
 
       - uses: ./.github/actions/build
 
