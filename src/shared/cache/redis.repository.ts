@@ -1,5 +1,6 @@
 import Redis from "ioredis";
 import { CacheRepository } from "./cache.repository";
+import { JsonValue } from "../../shared/types/json-value";
 
 export class RedisRepository implements CacheRepository {
     constructor(
@@ -20,7 +21,7 @@ export class RedisRepository implements CacheRepository {
 
     async set(
         key: string,
-        value: any,
+        value: JsonValue,
         ttl: number
     ) {
 

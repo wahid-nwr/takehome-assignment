@@ -1,0 +1,1 @@
+export type AuditData = Record<string, unknown>;

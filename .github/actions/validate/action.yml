@@ -1,0 +1,11 @@
+name: Validate Project
+
+description: Typecheck, lint and test
+
+runs:
+  using: composite
+
+  steps:
+
+    - shell: bash
+      run: npm run ci:validate

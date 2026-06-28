@@ -3,6 +3,9 @@ import {
     Prisma,
     PrismaClient
 } from "@prisma/client";
+
+import { UpdateFlagData } from "./dto/update-flagdata";
+
 export class FlagRepository {
 
 constructor(
@@ -54,7 +57,7 @@ constructor(
                 tenantId,
                 isArchived: false,
                 ...(environment && {
-                    environment: environment as any
+                    environment: environment
                 })
             },
             orderBy: {
@@ -70,7 +73,7 @@ constructor(
         return this.prisma.featureFlag.findMany({
             where: {
                 tenantId,
-                environment: environment as any,
+                environment: environment,
                 isActive: true,
                 isArchived: false
             }
@@ -112,18 +115,21 @@ constructor(
     async update(
         tenantId: string,
         flagId: string,
-        updates: Partial<{
-            defaultValue: any;
-            rolloutPercentage: number;
-            isActive: boolean;
-        }>
+        updates: UpdateFlagData
     ) {
         return this.prisma.featureFlag.update({
             where: {
                 id: flagId,
                 tenantId
             },
-            data: updates
+            data: {
+                rolloutPercentage: updates.rolloutPercentage,
+                isActive: updates.isActive,
+                ...(updates.defaultValue !== undefined && {
+                    defaultValue:
+                        updates.defaultValue as Prisma.InputJsonValue
+                })
+            }
         });
     }
 

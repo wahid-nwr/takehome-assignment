@@ -1,0 +1,14 @@
+name: Setup Prisma
+
+description: Generate Prisma Client and apply migrations
+
+runs:
+  using: composite
+
+  steps:
+
+    - shell: bash
+      run: npm run prisma:generate
+
+    - shell: bash
+      run: npx prisma migrate deploy
