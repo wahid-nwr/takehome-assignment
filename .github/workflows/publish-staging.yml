@@ -50,6 +50,10 @@ jobs:
           workload-identity-provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
+      - name: Verify identity
+        run: |
+          gcloud auth list
+
       - name: Configure Docker
         run: |
           gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
