@@ -3,6 +3,10 @@ name: Test GCP Authentication
 on:
   workflow_dispatch:
 
+  push:
+    branches:
+      - feature/infrastructure
+
 permissions:
   id-token: write
   contents: read
