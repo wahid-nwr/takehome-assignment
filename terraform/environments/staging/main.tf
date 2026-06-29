@@ -69,6 +69,17 @@ module "networking" {
   ]
 }
 
+module "artifact_registry" {
+
+  source = "../../modules/artifact-registry"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  repository_id = "feature-flag"
+}
+
 module "cloud_run" {
 
   source = "../../modules/cloud-run"

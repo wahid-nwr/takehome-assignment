@@ -1,14 +1,11 @@
-variable "service_name" {
-  description = "Artifact registry"
-  type        = string
-}
-
 variable "project_id" {
-  description = "Google Cloud project"
-  type        = string
+  type = string
 }
 
 variable "region" {
-  description = "Deployment region"
-  type        = string
+  type = string
+}
+
+variable "repository_id" {
+  type = string
 }
