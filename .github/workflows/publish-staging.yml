@@ -1,0 +1,63 @@
+name: Publish Staging Image
+
+on:
+  workflow_run:
+    workflows:
+      - Continuous Integration
+    types:
+      - completed
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: asia-southeast1
+  PROJECT_ID: feature-flag-staging
+  REPOSITORY: feature-flag
+  IMAGE_NAME: feature-flag-service
+
+  IMAGE: asia-southeast1-docker.pkg.dev/feature-flag-staging/feature-flag/feature-flag-service
+
+jobs:
+  docker:
+    name: Build & Publish Staging Image
+
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'develop'
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: staging
+
+    concurrency:
+      group: publish-staging
+      cancel-in-progress: true
+
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Authenticate to Google Cloud
+        uses: ./.github/actions/gcp-auth
+        with:
+          workload-identity-provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+
+      - name: Build & Publish Docker Image
+        uses: ./.github/actions/docker
+        with:
+          push: "true"
+          tags: |
+            ${{ env.IMAGE }}:staging
+            ${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}

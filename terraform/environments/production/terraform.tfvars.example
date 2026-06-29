@@ -1,0 +1,5 @@
+project_id = "my-production-project"
+
+region = "asia-southeast1"
+
+image = "asia-southeast1-docker.pkg.dev/project-id/feature-flag/feature-flag-service:v1.0.0"

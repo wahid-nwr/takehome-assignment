@@ -1,6 +1,6 @@
 services:
   api:
-    image: ghcr.io/${GITHUB_OWNER}/feature-flag-service:${TAG:-latest}
+    image: asia-southeast1-docker.pkg.dev/feature-flag-staging/feature-flag/feature-flag-service:${TAG:-latest}
 
     env_file:
       - .env.staging

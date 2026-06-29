@@ -27,3 +27,10 @@ coverage
 *.njsproj
 *.sln
 *.sw
+
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
