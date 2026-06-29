@@ -47,8 +47,9 @@ variable "max_instances" {
 }
 
 variable "timeout_seconds" {
-  type    = number
-  default = 300
+  description = "Container request timeout"
+  type        = string
+  default     = "300s"
 }
 
 variable "max_concurrency" {

@@ -8,8 +8,8 @@ locals {
   service_name = "feature-flag-service-staging"
 
   cloud_sql_tier = "db-custom-2-4096"
-  redis_tier     = "STANDARD_HA"
-  redis_memory   = 2
+  redis_tier     = "BASIC"
+  redis_memory   = 1
 
   min_instances = 1
   max_instances = 10
@@ -35,6 +35,40 @@ locals {
   }
 }
 
+module "project_services" {
+  source     = "../../modules/project-services"
+  project_id = var.project_id
+
+  services = [
+    "compute.googleapis.com",
+    "run.googleapis.com",
+    "sqladmin.googleapis.com",
+    "redis.googleapis.com",
+    "vpcaccess.googleapis.com",
+    "secretmanager.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+  ]
+}
+
+module "networking" {
+
+  source = "../../modules/networking"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  network_name = "ff-stg"
+
+  labels = local.labels
+
+  depends_on = [
+    module.project_services
+  ]
+}
+
 module "cloud_run" {
 
   source = "../../modules/cloud-run"
@@ -51,13 +85,17 @@ module "cloud_run" {
   cpu    = "1"
   memory = "512Mi"
 
-  min_instances = 0
-  max_instances = 2
+  min_instances = local.max_instances
+  max_instances = local.max_instances
 
   env_vars = local.app_env
 
   labels = local.labels
   service_account_email = ""
+
+  depends_on = [
+    module.project_services
+  ]
 }
 
 module "cloud_sql" {
@@ -73,9 +111,14 @@ module "cloud_sql" {
 
   username = "featureflags"
 
-  tier = "db-f1-micro"
+  tier = local.cloud_sql_tier
 
   private_network = module.networking.network_self_link
+
+  depends_on = [
+    module.project_services,
+    module.networking
+  ]
 
   backup_enabled      = true
   deletion_protection = false
@@ -93,24 +136,15 @@ module "redis" {
 
   instance_name = "feature-flag-redis-staging"
 
-  tier = "BASIC"
+  tier = local.redis_tier
 
-  memory_size_gb = 1
+  memory_size_gb = local.redis_memory
 
   prevent_destroy = false
 
   labels = local.labels
-}
 
-module "networking" {
-
-  source = "../../modules/networking"
-
-  project_id = var.project_id
-
-  region = var.region
-
-  network_name = "feature-flag-network-staging"
-
-  labels = local.labels
+  depends_on = [
+    module.project_services
+  ]
 }

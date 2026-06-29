@@ -10,3 +10,7 @@ output "network_self_link" {
 output "vpc_connector" {
   value = google_vpc_access_connector.this.id
 }
+
+output "private_service_connection" {
+  value = google_service_networking_connection.private_service_access
+}

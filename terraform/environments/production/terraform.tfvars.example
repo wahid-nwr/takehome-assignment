@@ -2,4 +2,4 @@ project_id = "my-production-project"
 
 region = "asia-southeast1"
 
-image = "ghcr.io/my-org/feature-flag-service:v1.0.0"
+image = "asia-southeast1-docker.pkg.dev/project-id/feature-flag/feature-flag-service:v1.0.0"

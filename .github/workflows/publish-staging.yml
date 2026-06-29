@@ -9,11 +9,15 @@ on:
 
 permissions:
   contents: read
-  packages: write
+  id-token: write
 
 env:
-  REGISTRY: ghcr.io
+  REGION: asia-southeast1
+  PROJECT_ID: feature-flag-staging
+  REPOSITORY: feature-flag
   IMAGE_NAME: feature-flag-service
+
+  IMAGE: asia-southeast1-docker.pkg.dev/feature-flag-staging/feature-flag/feature-flag-service
 
 jobs:
   docker:
@@ -40,11 +44,20 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
+      - name: Authenticate to Google Cloud
+        uses: ./.github/actions/gcp-auth
+        with:
+          workload-identity-provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+
       - name: Build & Publish Docker Image
         uses: ./.github/actions/docker
         with:
           push: "true"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           tags: |
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:staging
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:sha-${{ github.event.workflow_run.head_sha }}
+            ${{ env.IMAGE }}:staging
+            ${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}

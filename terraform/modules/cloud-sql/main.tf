@@ -13,6 +13,7 @@ resource "google_sql_database_instance" "this" {
 
   settings {
     tier = var.tier
+    edition = "ENTERPRISE"
 
     availability_type = "ZONAL"
 

@@ -1,22 +1,8 @@
-resource "google_project_service" "services" {
-
-  for_each = toset([
-    "compute.googleapis.com",
-    "servicenetworking.googleapis.com",
-    "vpcaccess.googleapis.com"
-  ])
-
-  project = var.project_id
-  service = each.value
-
-  disable_on_destroy = false
-}
-
 resource "google_compute_network" "this" {
 
-  name                    = var.network_name
+  name = var.network_name
 
-  auto_create_subnetworks = true
+  auto_create_subnetworks = false
 
   project = var.project_id
 }
@@ -55,7 +41,19 @@ resource "google_vpc_access_connector" "this" {
 
   network = google_compute_network.this.name
 
+  min_instances = 2
+
+  max_instances = 3
+
   ip_cidr_range = "10.8.0.0/28"
 
   project = var.project_id
+}
+
+resource "google_compute_subnetwork" "this" {
+  name          = "${var.network_name}-subnet"
+  network       = google_compute_network.this.id
+  ip_cidr_range = "10.0.0.0/24"
+  region        = var.region
+  project       = var.project_id
 }
