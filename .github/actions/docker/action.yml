@@ -36,6 +36,7 @@ runs:
         target: ${{ inputs.target }}
         push: ${{ inputs.push }}
         tags: ${{ inputs.tags }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+
+        no-cache: true
+
         provenance: false
