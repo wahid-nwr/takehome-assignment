@@ -72,6 +72,12 @@ jobs:
         working-directory: terraform/environments/staging
         run: terraform init
 
+      - name: Debug image
+        run: |
+          echo "IMAGE=${{ env.IMAGE }}"
+          echo "TAG=${{ github.event.workflow_run.head_sha }}"
+          echo "FULL=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}"
+          
       - name: Terraform Plan
         working-directory: terraform/environments/staging
         run: |
@@ -79,7 +85,7 @@ jobs:
             -out=tfplan \
             -var="project_id=${{ env.PROJECT_ID }}" \
             -var="region=${{ env.REGION }}" \
-            -var="container_image=$${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}" \
+            -var="container_image=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}" \
             -var='invoker_members=${{ vars.STAGING_INVOKER_MEMBERS }}'
 
       - name: Terraform Apply
