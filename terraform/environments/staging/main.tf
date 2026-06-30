@@ -35,23 +35,6 @@ locals {
   }
 }
 
-module "project_services" {
-  source     = "../../modules/project-services"
-  project_id = var.project_id
-
-  services = [
-    "compute.googleapis.com",
-    "run.googleapis.com",
-    "sqladmin.googleapis.com",
-    "redis.googleapis.com",
-    "vpcaccess.googleapis.com",
-    "secretmanager.googleapis.com",
-    "iam.googleapis.com",
-    "iamcredentials.googleapis.com",
-    "cloudresourcemanager.googleapis.com",
-  ]
-}
-
 module "networking" {
 
   source = "../../modules/networking"
@@ -63,21 +46,6 @@ module "networking" {
   network_name = "ff-stg"
 
   labels = local.labels
-
-  depends_on = [
-    module.project_services
-  ]
-}
-
-module "artifact_registry" {
-
-  source = "../../modules/artifact-registry"
-
-  project_id = var.project_id
-
-  region = var.region
-
-  repository_id = "feature-flag"
 }
 
 module "cloud_run" {
@@ -105,10 +73,6 @@ module "cloud_run" {
   labels = local.labels
   service_account_email = var.runtime_service_account
 
-  depends_on = [
-    module.project_services
-  ]
-
   invoker_members = var.invoker_members
 }
 
@@ -130,7 +94,6 @@ module "cloud_sql" {
   private_network = module.networking.network_self_link
 
   depends_on = [
-    module.project_services,
     module.networking
   ]
 
@@ -157,8 +120,4 @@ module "redis" {
   prevent_destroy = false
 
   labels = local.labels
-
-  depends_on = [
-    module.project_services
-  ]
 }
