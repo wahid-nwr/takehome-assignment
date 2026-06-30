@@ -103,7 +103,7 @@ module "cloud_run" {
   env_vars = local.app_env
 
   labels = local.labels
-  service_account_email = ""
+  service_account_email = var.runtime_service_account
 
   depends_on = [
     module.project_services

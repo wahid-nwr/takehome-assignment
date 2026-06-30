@@ -45,6 +45,7 @@ module "project_services" {
     "sqladmin.googleapis.com",
     "redis.googleapis.com",
     "vpcaccess.googleapis.com",
+    "servicenetworking.googleapis.com",
     "secretmanager.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
@@ -103,7 +104,7 @@ module "cloud_run" {
   env_vars = local.app_env
 
   labels = local.labels
-  service_account_email = ""
+  service_account_email = var.runtime_service_account
 
   depends_on = [
     module.project_services
