@@ -33,7 +33,7 @@ jobs:
 
     concurrency:
       group: publish-staging
-      cancel-in-progress: true
+      cancel-in-progress: false
 
     timeout-minutes: 20
 
@@ -85,6 +85,7 @@ jobs:
             -out=tfplan \
             -var="project_id=${{ env.PROJECT_ID }}" \
             -var="region=${{ env.REGION }}" \
+            -var="runtime_service_account=${{ vars.STAGING_RUNTIME_SERVICE_ACCOUNT }}" \
             -var="container_image=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}" \
             -var='invoker_members=${{ vars.STAGING_INVOKER_MEMBERS }}'
 

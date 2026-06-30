@@ -18,3 +18,7 @@ variable "invoker_members" {
   type        = list(string)
   default     = []
 }
+
+variable "runtime_service_account" {
+  type = string
+}
