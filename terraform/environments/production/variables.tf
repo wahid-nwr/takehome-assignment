@@ -12,3 +12,9 @@ variable "container_image" {
   description = "Container image to deploy"
   type        = string
 }
+
+variable "invoker_members" {
+  description = "GitHub Actions service account"
+  type        = list(string)
+  default     = []
+}
