@@ -1,4 +1,4 @@
-name: Publish Staging Image
+name: Publish and deploy to Staging
 
 on:
   push:
