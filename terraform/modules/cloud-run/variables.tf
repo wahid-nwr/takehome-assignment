@@ -89,3 +89,9 @@ variable "ingress" {
   type    = string
   default = "INGRESS_TRAFFIC_ALL"
 }
+
+variable "invoker_members" {
+  description = "Members allowed to invoke the Cloud Run service."
+  type        = list(string)
+  default     = []
+}

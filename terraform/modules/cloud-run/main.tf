@@ -58,3 +58,14 @@ resource "google_cloud_run_v2_service" "api" {
 
   ingress = var.ingress
 }
+
+resource "google_cloud_run_service_iam_member" "invokers" {
+  for_each = toset(var.invoker_members)
+
+  project  = var.project_id
+  location = var.region
+  service  = google_cloud_run_v2_service.api.name
+
+  role   = "roles/run.invoker"
+  member = each.value
+}

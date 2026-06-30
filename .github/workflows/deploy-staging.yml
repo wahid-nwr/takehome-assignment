@@ -1,0 +1,98 @@
+name: Deploy Staging
+
+on:
+  workflow_run:
+    workflows:
+      - Publish Staging Image
+    types:
+      - completed
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: asia-southeast1
+  PROJECT_ID: feature-flag-staging
+  REPOSITORY: feature-flag
+  IMAGE_NAME: feature-flag-service
+
+  TF_WORKING_DIR: terraform/environments/staging
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+
+    if: >
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'develop'
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: staging
+
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: true
+
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Authenticate to Google Cloud
+        uses: ./.github/actions/gcp-auth
+        with:
+          workload-identity-provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Terraform Apply
+        run: |
+          terraform apply \
+            -auto-approve tfplan \
+            -var="container_image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:sha-${{ github.event.workflow_run.head_sha }}"
+
+      - name: Get Cloud Run URL
+        id: outputs
+        run: |
+          echo "url=$(terraform output -raw cloud_run_url)" >> $GITHUB_OUTPUT
+
+      - name: Smoke Test
+        run: |
+          TOKEN=$(gcloud auth print-identity-token)
+
+          curl \
+            --fail \
+            --show-error \
+            --silent \
+            -H "Authorization: Bearer ${TOKEN}" \
+            "${{ steps.outputs.outputs.url }}/health"
+
+      - name: Deployment Summary
+        run: |
+          echo "Deployment successful."
+          echo "Cloud Run URL:"
+          echo "${{ steps.outputs.outputs.url }}"
