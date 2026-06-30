@@ -96,8 +96,10 @@ module "cloud_run" {
   cpu    = "1"
   memory = "512Mi"
 
-  min_instances = local.max_instances
+  min_instances = local.min_instances
+
   max_instances = local.max_instances
+
   env_vars = local.app_env
 
   labels = local.labels
