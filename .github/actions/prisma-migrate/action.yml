@@ -1,0 +1,8 @@
+name: Apply Prisma Migrations
+description: Apply pending Prisma migrations
+runs:
+  using: composite
+
+  steps:
+    - shell: bash
+      run: npx prisma migrate deploy

@@ -1,31 +1,22 @@
-import { PrismaClient, AuditAction } from "@prisma/client";
-
+import { Prisma, PrismaClient } from "@prisma/client";
+import { AuditLogRequest } from "./dto/audit-log-request";
 export class AuditRepository {
 
 constructor(
         private readonly prisma: PrismaClient
     ) {}
 
-    async insert(data: {
-        tenantId: string;
-        flagId: string;
-        action: AuditAction;
-        previousValue?: any;
-        newValue?: any;
-        changedBy?: string;
-    }) {
-
-        return this.prisma.flagAuditLog.create({
+    async insert(params: AuditLogRequest): Promise<void> {
+        await this.prisma.flagAuditLog.create({
             data: {
-                tenantId: data.tenantId,
-                flagId: data.flagId,
-                action: data.action,
-                previousValue: data.previousValue,
-                newValue: data.newValue,
-                changedBy: data.changedBy
+                tenantId: params.tenantId,
+                flagId: params.flagId,
+                action: params.action,
+                previousValue: params.previousValue as Prisma.InputJsonValue,
+                newValue: params.newValue as Prisma.InputJsonValue,
+                changedBy: params.changedBy
             }
         });
-
     }
 
     async getHistory(

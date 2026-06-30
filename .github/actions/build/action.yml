@@ -1,0 +1,9 @@
+name: Build Project
+
+runs:
+  using: composite
+
+  steps:
+    - name: Build application
+      shell: bash
+      run: npm run ci:build

@@ -1,0 +1,93 @@
+name: Publish and deploy to Production
+
+on:
+  workflow_run:
+    workflows:
+      - Continuous Integration
+    types:
+      - completed
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: asia-southeast1
+  PROJECT_ID: feature-flag-production
+  REPOSITORY: feature-flag
+  IMAGE_NAME: feature-flag-service
+
+  IMAGE: asia-southeast1-docker.pkg.dev/feature-flag-production/feature-flag/feature-flag-service
+
+jobs:
+  docker:
+    name: Build & Publish Production Image
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+
+    concurrency:
+      group: publish-production
+      cancel-in-progress: true
+
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Authenticate to Google Cloud
+        uses: ./.github/actions/gcp-auth
+        with:
+          workload-identity-provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Verify identity
+        run: |
+          gcloud auth list
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+
+      - name: Build & Publish Docker Image
+        uses: ./.github/actions/docker
+        with:
+          push: "true"
+          tags: |
+            ${{ env.IMAGE }}:production
+            ${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform/environments/production
+        run: terraform init
+
+      - name: Debug image
+        run: |
+          echo "IMAGE=${{ env.IMAGE }}"
+          echo "TAG=${{ github.event.workflow_run.head_sha }}"
+          echo "FULL=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}"
+
+      - name: Terraform Plan
+        working-directory: terraform/environments/production
+        run: |
+          terraform plan \
+            -out=tfplan \
+            -var="project_id=${{ env.PROJECT_ID }}" \
+            -var="region=${{ env.REGION }}" \
+            -var="container_image=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}" \
+            -var='invoker_members=${{ vars.PRODUCTION_INVOKER_MEMBERS }}'
+
+      - name: Terraform Apply
+        working-directory: terraform/environments/production
+        run: terraform apply -auto-approve tfplan

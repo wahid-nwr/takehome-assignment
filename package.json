@@ -7,14 +7,17 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "lint": "eslint .",
+    "lint": "eslint src tests",
     "docker:up": "docker-compose up --build",
     "docker:down": "docker-compose down",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "ci:validate": "npm run typecheck && npm run lint && npm run test:coverage",
+    "ci:build": "npm run build"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
@@ -29,16 +32,14 @@
   },
   "devDependencies": {
     "@eslint/css": "^0.14.1",
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^9.39.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/ioredis": "^4.28.10",
     "@types/jest": "^29.5.14",
     "@types/morgan": "^1.9.9",
     "@types/node": "^20.11.30",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
-    "eslint": "^8.57.1",
+    "eslint": "^9.39.0",
     "globals": "^17.7.0",
     "jest": "^29.7.0",
     "prisma": "^5.0.0",
@@ -46,6 +47,6 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.5.4",
-    "typescript-eslint": "^8.62.0"
+    "typescript-eslint": "^8.37.0"
   }
 }
