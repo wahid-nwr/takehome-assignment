@@ -33,7 +33,7 @@ jobs:
 
     concurrency:
       group: publish-production
-      cancel-in-progress: true
+      cancel-in-progress: false
 
     timeout-minutes: 20
 
