@@ -1,4 +1,4 @@
-name: Publish Production Image
+name: Publish and deploy to Production
 
 on:
   workflow_run:
@@ -22,8 +22,7 @@ env:
 jobs:
   docker:
     name: Build & Publish Production Image
-
-    if: >
+    if: |
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.head_branch == 'main'
 
@@ -50,16 +49,45 @@ jobs:
           workload-identity-provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service-account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
+      - name: Verify identity
+        run: |
+          gcloud auth list
+
       - name: Configure Docker
         run: |
-          gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet    
+          gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
 
       - name: Build & Publish Docker Image
         uses: ./.github/actions/docker
         with:
           push: "true"
-          github-token: ${{ secrets.GITHUB_TOKEN }}
           tags: |
             ${{ env.IMAGE }}:production
-            ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        working-directory: terraform/environments/production
+        run: terraform init
+
+      - name: Debug image
+        run: |
+          echo "IMAGE=${{ env.IMAGE }}"
+          echo "TAG=${{ github.event.workflow_run.head_sha }}"
+          echo "FULL=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}"
+
+      - name: Terraform Plan
+        working-directory: terraform/environments/production
+        run: |
+          terraform plan \
+            -out=tfplan \
+            -var="project_id=${{ env.PROJECT_ID }}" \
+            -var="region=${{ env.REGION }}" \
+            -var="container_image=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}" \
+            -var='invoker_members=${{ vars.PRODUCTION_INVOKER_MEMBERS }}'
+
+      - name: Terraform Apply
+        working-directory: terraform/environments/production
+        run: terraform apply -auto-approve tfplan

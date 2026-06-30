@@ -77,7 +77,7 @@ jobs:
           echo "IMAGE=${{ env.IMAGE }}"
           echo "TAG=${{ github.event.workflow_run.head_sha }}"
           echo "FULL=${{ env.IMAGE }}:sha-${{ github.event.workflow_run.head_sha }}"
-          
+
       - name: Terraform Plan
         working-directory: terraform/environments/staging
         run: |

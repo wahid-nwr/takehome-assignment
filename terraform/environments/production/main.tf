@@ -5,14 +5,14 @@ locals {
     managed_by  = "terraform"
   }
 
-  service_name = "feature-flag-service"
+  service_name = "feature-flag-service-production"
 
-  cloud_sql_tier = "db-f1-micro"
+  cloud_sql_tier = "db-custom-2-4096"
   redis_tier     = "BASIC"
   redis_memory   = 1
 
-  min_instances = 0
-  max_instances = 2
+  min_instances = 1
+  max_instances = 10
 
   database_url = format(
     "postgresql://%s:%s@%s:5432/%s",
@@ -35,6 +35,51 @@ locals {
   }
 }
 
+module "project_services" {
+  source     = "../../modules/project-services"
+  project_id = var.project_id
+
+  services = [
+    "compute.googleapis.com",
+    "run.googleapis.com",
+    "sqladmin.googleapis.com",
+    "redis.googleapis.com",
+    "vpcaccess.googleapis.com",
+    "secretmanager.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+  ]
+}
+
+module "networking" {
+
+  source = "../../modules/networking"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  network_name = "ff-production"
+
+  labels = local.labels
+
+  depends_on = [
+    module.project_services
+  ]
+}
+
+module "artifact_registry" {
+
+  source = "../../modules/artifact-registry"
+
+  project_id = var.project_id
+
+  region = var.region
+
+  repository_id = "feature-flag"
+}
+
 module "cloud_run" {
 
   source = "../../modules/cloud-run"
@@ -42,22 +87,29 @@ module "cloud_run" {
   project_id = var.project_id
   region     = var.region
 
-  service_name    = local.service_name
+  service_name = local.service_name
+
   container_image = var.container_image
 
   vpc_connector = module.networking.vpc_connector
 
-  resources = {
-    cpu    = "2"
-    memory = "1Gi"
-  }
+  cpu    = "1"
+  memory = "512Mi"
 
-  min_instances = 1
-  max_instances = 10
+  min_instances = local.min_instances
+
+  max_instances = local.max_instances
 
   env_vars = local.app_env
 
   labels = local.labels
+  service_account_email = ""
+
+  depends_on = [
+    module.project_services
+  ]
+
+  invoker_members = var.invoker_members
 }
 
 module "cloud_sql" {
@@ -67,15 +119,20 @@ module "cloud_sql" {
   project_id = var.project_id
   region     = var.region
 
-  instance_name = "feature-flag-db"
+  instance_name = "feature-flag-db-production"
 
   database_name = "feature_flags"
 
   username = "featureflags"
 
-  tier = "db-custom-2-4096"
+  tier = local.cloud_sql_tier
 
   private_network = module.networking.network_self_link
+
+  depends_on = [
+    module.project_services,
+    module.networking
+  ]
 
   backup_enabled      = true
   deletion_protection = true
@@ -91,26 +148,17 @@ module "redis" {
   project_id = var.project_id
   region     = var.region
 
-  instance_name = "feature-flag-redis"
+  instance_name = "feature-flag-redis-production"
 
-  tier = "STANDARD_HA"
+  tier = local.redis_tier
 
-  memory_size_gb = 2
+  memory_size_gb = local.redis_memory
 
-  prevent_destroy = true
-
-  labels = local.labels
-}
-
-module "networking" {
-
-  source = "../../modules/networking"
-
-  project_id = var.project_id
-
-  region = var.region
-
-  network_name = "feature-flag-network"
+  prevent_destroy = false
 
   labels = local.labels
+
+  depends_on = [
+    module.project_services
+  ]
 }
