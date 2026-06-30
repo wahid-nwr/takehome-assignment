@@ -98,7 +98,6 @@ module "cloud_run" {
 
   min_instances = local.max_instances
   max_instances = local.max_instances
-
   env_vars = local.app_env
 
   labels = local.labels
@@ -107,6 +106,8 @@ module "cloud_run" {
   depends_on = [
     module.project_services
   ]
+
+  invoker_members = var.invoker_members
 }
 
 module "cloud_sql" {
