@@ -1,49 +1,32 @@
 import Redis from "ioredis";
 import { CacheRepository } from "./cache.repository";
-import { JsonValue } from "../../shared/types/json-value";
-import {
-    cacheHitsTotal,
-    cacheMissesTotal,
-} from "../../metrics/metrics";
 
 export class RedisRepository implements CacheRepository {
+
     constructor(
         private readonly redis: Redis
     ) {}
 
-    async get<T>(
-        key: string
-    ): Promise<T | null> {
-
+    async get<T>(key: string): Promise<T | null> {
         const value = await this.redis.get(key);
-
-        if (!value) {
-            cacheMissesTotal.inc();
-            return null;
-        }
-
-        cacheHitsTotal.inc();
-
-        return JSON.parse(value);
+        return (value) ? (JSON.parse(value) as T) : null;
     }
 
-    async set(
+    async set<T>(
         key: string,
-        value: JsonValue,
-        ttl: number
-    ) {
+        value: T,
+        ttlSeconds: number
+    ): Promise<void> {
 
         await this.redis.set(
             key,
             JSON.stringify(value),
-            'EX',
-            ttl
+            "EX",
+            ttlSeconds
         );
     }
 
-    async delete(
-        key: string
-    ) {
+    async delete(key: string): Promise<void> {
         await this.redis.del(key);
     }
 }

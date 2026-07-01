@@ -20,8 +20,8 @@ import { TenantController } from '../modules/tenants/tenant.controller';
 import { FlagController } from '../modules/flags/flag.controller';
 import { EvaluationController } from '../modules/evaluation/evaluation.controller';
 
-import { MemoryCacheService } from "../shared/cache/memory-cache.service";
-import client from "prom-client";
+import { createCacheService } from "../shared/cache/cache.factory";
+import { register } from "../metrics/metrics";
 
 const router = Router();
 
@@ -41,7 +41,7 @@ const flagService = new FlagService(flagRepository, auditService);
 
 const rolloutEngine = new RolloutEngine();
 
-const cacheService = new MemoryCacheService();
+const cacheService = createCacheService();
 
 const evaluationService = new EvaluationService(
     cacheService,
@@ -58,8 +58,6 @@ const evaluationController = new EvaluationController(evaluationService);
 const apiKeyMiddleware = new ApiKeyMiddleware(tenantService);
 
 const adminApiKeyMiddleware = new AdminApiKeyMiddleware();
-
-export const register = new client.Registry();
 
 router.post(
     "/api/v1/tenants",
@@ -91,6 +89,15 @@ router.post(
     evaluationController.evaluateBulk
 );
 
+router.get(
+    "/metrics",
+    adminApiKeyMiddleware.authenticate,
+    async (req, res) => {
+        res.setHeader("Content-Type", register.contentType);
+        res.end(await register.metrics());
+    }
+);
+
 router.get("/health", (req, res) => {
     res.json({
         status: "UP",
@@ -103,11 +110,6 @@ router.get("/db", async (req, res) => {
     res.json({
         database: "connected"
     });
-});
-
-router.get("/metrics", async (_req, res) => {
-    res.setHeader("Content-Type", register.contentType);
-    res.end(await register.metrics());
 });
 
 export default router;
