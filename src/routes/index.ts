@@ -21,6 +21,7 @@ import { FlagController } from '../modules/flags/flag.controller';
 import { EvaluationController } from '../modules/evaluation/evaluation.controller';
 
 import { MemoryCacheService } from "../shared/cache/memory-cache.service";
+import client from "prom-client";
 
 const router = Router();
 
@@ -57,6 +58,8 @@ const evaluationController = new EvaluationController(evaluationService);
 const apiKeyMiddleware = new ApiKeyMiddleware(tenantService);
 
 const adminApiKeyMiddleware = new AdminApiKeyMiddleware();
+
+export const register = new client.Registry();
 
 router.post(
     "/api/v1/tenants",
@@ -100,6 +103,11 @@ router.get("/db", async (req, res) => {
     res.json({
         database: "connected"
     });
+});
+
+router.get("/metrics", async (_req, res) => {
+    res.setHeader("Content-Type", register.contentType);
+    res.end(await register.metrics());
 });
 
 export default router;

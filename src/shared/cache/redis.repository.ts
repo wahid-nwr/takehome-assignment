@@ -1,22 +1,30 @@
 import Redis from "ioredis";
 import { CacheRepository } from "./cache.repository";
 import { JsonValue } from "../../shared/types/json-value";
+import {
+    cacheHitsTotal,
+    cacheMissesTotal,
+} from "../../metrics/metrics";
 
 export class RedisRepository implements CacheRepository {
     constructor(
-        private redis: Redis
+        private readonly redis: Redis
     ) {}
 
     async get<T>(
         key: string
     ): Promise<T | null> {
 
-        const value =
-            await this.redis.get(key);
+        const value = await this.redis.get(key);
 
-        return value
-            ? JSON.parse(value)
-            : null;
+        if (!value) {
+            cacheMissesTotal.inc();
+            return null;
+        }
+
+        cacheHitsTotal.inc();
+
+        return JSON.parse(value);
     }
 
     async set(
