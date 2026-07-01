@@ -1,5 +1,4 @@
 import { CacheRepository } from "./cache.repository";
-import { JsonValue } from "../types/json-value";
 import {
     cacheHitsTotal,
     cacheMissesTotal,
