@@ -9,6 +9,7 @@ import { AuditRepository } from '../modules/audit/audit.repository';
 
 import { TenantService } from '../modules/tenants/tenant.service';
 import { ApiKeyMiddleware } from "../shared/middleware/tenant-auth.middleware";
+import { AdminApiKeyMiddleware } from "../shared/middleware/admin-api-key.middleware";
 import { AuditService } from '../modules/audit/audit.service';
 import { FlagService } from '../modules/flags/flag.service';
 import { EvaluationService } from '../modules/evaluation/evaluation.service';
@@ -55,8 +56,11 @@ const evaluationController = new EvaluationController(evaluationService);
 
 const apiKeyMiddleware = new ApiKeyMiddleware(tenantService);
 
+const adminApiKeyMiddleware = new AdminApiKeyMiddleware();
+
 router.post(
     "/api/v1/tenants",
+    adminApiKeyMiddleware.authenticate,
     tenantController.createTenant
 );
 
