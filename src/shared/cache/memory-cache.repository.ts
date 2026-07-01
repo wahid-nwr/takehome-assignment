@@ -1,13 +1,12 @@
-import { CacheService } from "./cache.service";
+import { CacheRepository } from "./cache.repository";
 
-export class MemoryCacheService implements CacheService {
+export class MemoryCacheRepository implements CacheRepository {
 
-private readonly cache = new Map<string, unknown>();
+    private readonly cache = new Map<string, unknown>();
 
-async get<T>(key: string): Promise<T | null> {
-
-return (this.cache.get(key) as T) ?? null;
-
+    async get<T>(key: string): Promise<T | null> {
+        const value = await this.cache.get(key);
+        return (value) ? (this.cache.get(key) as T) : null;
     }
 
     async set<T>(
@@ -15,7 +14,6 @@ return (this.cache.get(key) as T) ?? null;
         value: T,
         ttlSeconds?: number
     ): Promise<void> {
-
         this.cache.set(key, value);
 
         if (ttlSeconds) {
@@ -23,13 +21,10 @@ return (this.cache.get(key) as T) ?? null;
                 this.cache.delete(key);
             }, ttlSeconds * 1000);
         }
-
     }
 
     async delete(key: string): Promise<void> {
-
         this.cache.delete(key);
-
     }
 
 }

@@ -1,13 +1,37 @@
-export interface CacheService {
+import { CacheRepository } from "./cache.repository";
+import {
+    cacheHitsTotal,
+    cacheMissesTotal,
+} from "../../metrics/metrics";
 
-    get<T>(key: string): Promise<T | null>;
+export class CacheService {
 
-    set<T>(
+    constructor(
+        private readonly repository: CacheRepository
+    ) {}
+
+    async get<T>(key: string): Promise<T | null> {
+
+        const value = await this.repository.get<T>(key);
+
+        if (value) {
+            cacheHitsTotal.inc();
+        } else {
+            cacheMissesTotal.inc();
+        }
+
+        return value;
+    }
+
+    async set<T>(
         key: string,
         value: T,
-        ttlSeconds?: number
-    ): Promise<void>;
+        ttlSeconds: number
+    ): Promise<void> {
+        await this.repository.set(key, value, ttlSeconds);
+    }
 
-    delete(key: string): Promise<void>;
-
+    async delete(key: string): Promise<void> {
+        await this.repository.delete(key);
+    }
 }

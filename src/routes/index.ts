@@ -20,7 +20,8 @@ import { TenantController } from '../modules/tenants/tenant.controller';
 import { FlagController } from '../modules/flags/flag.controller';
 import { EvaluationController } from '../modules/evaluation/evaluation.controller';
 
-import { MemoryCacheService } from "../shared/cache/memory-cache.service";
+import { createCacheService } from "../shared/cache/cache.factory";
+import { register } from "../metrics/metrics";
 
 const router = Router();
 
@@ -40,7 +41,7 @@ const flagService = new FlagService(flagRepository, auditService);
 
 const rolloutEngine = new RolloutEngine();
 
-const cacheService = new MemoryCacheService();
+const cacheService = createCacheService();
 
 const evaluationService = new EvaluationService(
     cacheService,
@@ -86,6 +87,15 @@ router.post(
     "/api/v1/evaluate/bulk",
     apiKeyMiddleware.authenticate,
     evaluationController.evaluateBulk
+);
+
+router.get(
+    "/metrics",
+    adminApiKeyMiddleware.authenticate,
+    async (req, res) => {
+        res.setHeader("Content-Type", register.contentType);
+        res.end(await register.metrics());
+    }
 );
 
 router.get("/health", (req, res) => {

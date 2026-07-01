@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 export class TenantRepository {
 
-constructor(
+    constructor(
         private prisma: PrismaClient
     ) {}
 

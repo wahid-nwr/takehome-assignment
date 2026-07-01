@@ -1,10 +1,8 @@
-import { JsonValue } from "../../shared/types/json-value";
-
 export interface CacheRepository {
     get<T>(key: string): Promise<T | null>;
-    set(
+    set<T>(
         key: string,
-        value: JsonValue,
+        value: T,
         ttlSeconds: number
     ): Promise<void>;
     delete(key: string): Promise<void>;
