@@ -41,15 +41,10 @@ export class EvaluationService {
 
         const result: Record<string, unknown> = {};
 
-        console.log(flags);
         for (const flag of flags) {
-            console.log("Flag type:", flag.type);
-            console.log("FlagType.STRING:", FlagType.STRING);
-            console.log("Default value:", flag.defaultValue);
             switch (flag.type) {
 
                 case FlagType.BOOLEAN: {
-                    console.log("BOOLEAN");
                     const bucket = this.calculateBucket(
                         tenantId,
                         environment,
@@ -61,31 +56,24 @@ export class EvaluationService {
                         flag,
                         bucket
                     );
-                    console.log("Assigned:", result);
                     break;
                 }
 
                 case FlagType.STRING:
-                    console.log("STRING");
                     result[flag.key] = flag.defaultValue;
-                    console.log("Assigned:", result);
                     break;
 
                 case FlagType.NUMBER:
-                    console.log("NUMBER");
                     // Configuration flags are returned as-is.
                     result[flag.key] = flag.defaultValue;
-                    console.log("Assigned:", result);
                     break;
 
                 default:
-                    console.log("DEFAULT");
                     throw new Error(
                         `Unsupported flag type '${flag.type}'.`
                     );
             }
         }
-        console.log("Returning:", result);
         return result;
     }
 

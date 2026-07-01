@@ -3,7 +3,7 @@ import { AuthenticatedTenant } from "../shared/types/authenticated-tenant";
 
 declare module "express-serve-static-core" {
     interface Request {
-        correlationId?: string;
+        correlationId: string;
         tenant?: AuthenticatedTenant;
     }
 }
