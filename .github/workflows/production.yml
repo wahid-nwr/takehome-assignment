@@ -92,3 +92,9 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform/environments/production
         run: terraform apply -auto-approve tfplan
+
+      - name: Run database migrations
+        run: |
+          gcloud run jobs execute feature-flag-migration \
+            --region asia-southeast1 \
+            --wait

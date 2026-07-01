@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "migrate:deploy": "node dist/migrate.js",
     "lint": "eslint src tests",
     "docker:up": "docker-compose up --build",
     "docker:down": "docker-compose down",
@@ -17,7 +18,8 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "ci:validate": "npm run typecheck && npm run lint && npm run test:coverage",
-    "ci:build": "npm run build"
+    "ci:build": "npm run build",
+    "performance:test": "docker run --rm -i --network host -v $(pwd):/workspace -w /workspace -e API_KEY=$API_KEY grafana/k6 run tests/performance/evaluate.js"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
@@ -27,7 +29,9 @@
     "helmet": "^7.1.0",
     "ioredis": "^5.11.1",
     "morgan": "^1.10.0",
-    "uuid": "^9.0.1",
+    "pino": "^10.3.1",
+    "prom-client": "^15.1.3",
+    "uuid": "^14.0.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

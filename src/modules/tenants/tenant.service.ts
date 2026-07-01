@@ -27,7 +27,8 @@ constructor(
 
         return {
             tenant,
-            apiKey: apiKey
+            apiKey: apiKey,
+            message: "Store this API key securely. It will not be shown again."
         };
     }
 

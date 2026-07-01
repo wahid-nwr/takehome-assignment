@@ -15,11 +15,13 @@ constructor(
     ) => {
 
         try {
-            const apiKey = req.header("x-api-key");
+            const authHeader = req.header("Authorization");
 
-            if (!apiKey) {
-                return next(new UnauthorizedError("Missing API key"));
+            if (!authHeader?.startsWith("Bearer ")) {
+                return next(new UnauthorizedError("Missing or invalid Authorization header"));
             }
+
+            const apiKey = authHeader.substring("Bearer ".length);
 
             const tenant = await this.tenantService.resolveTenantByApiKey(apiKey);
 

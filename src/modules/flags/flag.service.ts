@@ -7,7 +7,7 @@ import { FlagValidator } from "./flag.validator";
 
 import { ConflictError } from "../../shared/errors/conflict.error";
 import { NotFoundError } from "../../shared/errors/notfound.error";
-
+import { ValidationError } from "../../shared/errors/validation.error";
 import { Environment, Prisma } from "@prisma/client";
 
 export class FlagService {
@@ -22,11 +22,17 @@ export class FlagService {
         request: CreateFlagRequest
     ) {
 
+        console.log("Received environment:", request.environment);
+        console.log("Valid environments:", Object.values(Environment));
+        if (!Object.values(Environment).includes(request.environment)) {
+            throw new ValidationError("Invalid environment.");
+        }
+
+        FlagValidator.validateCreate(request);
+
         request.key = request.key.trim();
         request.name = request.name.trim();
         request.description = request.description?.trim();
-
-        FlagValidator.validateCreate(request);
 
         const existing =
             await this.flagRepository.findByKey(

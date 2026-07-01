@@ -9,6 +9,7 @@ import { AuditRepository } from '../modules/audit/audit.repository';
 
 import { TenantService } from '../modules/tenants/tenant.service';
 import { ApiKeyMiddleware } from "../shared/middleware/tenant-auth.middleware";
+import { AdminApiKeyMiddleware } from "../shared/middleware/admin-api-key.middleware";
 import { AuditService } from '../modules/audit/audit.service';
 import { FlagService } from '../modules/flags/flag.service';
 import { EvaluationService } from '../modules/evaluation/evaluation.service';
@@ -19,7 +20,8 @@ import { TenantController } from '../modules/tenants/tenant.controller';
 import { FlagController } from '../modules/flags/flag.controller';
 import { EvaluationController } from '../modules/evaluation/evaluation.controller';
 
-import { MemoryCacheService } from "../shared/cache/memory-cache.service";
+import { createCacheService } from "../shared/cache/cache.factory";
+import { register } from "../metrics/metrics";
 
 const router = Router();
 
@@ -39,7 +41,7 @@ const flagService = new FlagService(flagRepository, auditService);
 
 const rolloutEngine = new RolloutEngine();
 
-const cacheService = new MemoryCacheService();
+const cacheService = createCacheService();
 
 const evaluationService = new EvaluationService(
     cacheService,
@@ -55,8 +57,11 @@ const evaluationController = new EvaluationController(evaluationService);
 
 const apiKeyMiddleware = new ApiKeyMiddleware(tenantService);
 
+const adminApiKeyMiddleware = new AdminApiKeyMiddleware();
+
 router.post(
     "/api/v1/tenants",
+    adminApiKeyMiddleware.authenticate,
     tenantController.createTenant
 );
 
@@ -82,6 +87,15 @@ router.post(
     "/api/v1/evaluate/bulk",
     apiKeyMiddleware.authenticate,
     evaluationController.evaluateBulk
+);
+
+router.get(
+    "/metrics",
+    adminApiKeyMiddleware.authenticate,
+    async (req, res) => {
+        res.setHeader("Content-Type", register.contentType);
+        res.end(await register.metrics());
+    }
 );
 
 router.get("/health", (req, res) => {

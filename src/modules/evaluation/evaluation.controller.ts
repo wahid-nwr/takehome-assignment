@@ -3,7 +3,7 @@ import { EvaluationService } from "./evaluation.service";
 
 export class EvaluationController {
     constructor(
-        private evaluationService: EvaluationService
+        private readonly evaluationService: EvaluationService
     ) {}
 
     evaluate = async (
