@@ -92,3 +92,8 @@ jobs:
       - name: Terraform Apply
         working-directory: terraform/environments/production
         run: terraform apply -auto-approve tfplan
+
+      - name: Run Prisma migrations
+        run: npm run prisma:migrate:deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

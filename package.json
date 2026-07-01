@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
     "lint": "eslint src tests",
     "docker:up": "docker-compose up --build",
     "docker:down": "docker-compose down",
