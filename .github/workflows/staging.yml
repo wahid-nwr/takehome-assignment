@@ -93,7 +93,8 @@ jobs:
         working-directory: terraform/environments/staging
         run: terraform apply -auto-approve tfplan
 
-      - name: Run Prisma migrations
-        run: npm run prisma:migrate:deploy
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Run database migrations
+        run: |
+          gcloud run jobs execute feature-flag-migration \
+            --region asia-southeast1 \
+            --wait
