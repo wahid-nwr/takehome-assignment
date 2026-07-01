@@ -121,3 +121,15 @@ module "redis" {
 
   labels = local.labels
 }
+
+module "cloud_run_job" {
+  source = "../../modules/cloud-run-job"
+
+  name                    = "feature-flag"
+  project_id              = var.project_id
+  region                  = var.region
+  container_image         = var.container_image
+  runtime_service_account = var.runtime_service_account
+  database_url            = local.database_url
+  vpc_connector           = module.networking.vpc_connector
+}
