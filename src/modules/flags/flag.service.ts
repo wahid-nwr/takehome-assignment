@@ -88,7 +88,6 @@ export class FlagService {
         flagKey: string,
         request: UpdateFlagRequest
     ) {
-        console.log("flagKey->" + flagKey);
         const existing =
             await this.flagRepository.findByKey(
                 tenantId,
