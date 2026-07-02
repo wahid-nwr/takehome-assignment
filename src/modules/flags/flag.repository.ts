@@ -123,8 +123,21 @@ constructor(
                 tenantId
             },
             data: {
-                rolloutPercentage: updates.rolloutPercentage,
-                isActive: updates.isActive,
+                ...(updates.key !== undefined && {
+                    key: updates.key
+                }),
+                ...(updates.name !== undefined && {
+                    name: updates.name
+                }),
+                ...(updates.description !== undefined && {
+                    description: updates.description
+                }),
+                ...(updates.rolloutPercentage !== undefined && {
+                    rolloutPercentage: updates.rolloutPercentage
+                }),
+                ...(updates.isActive !== undefined && {
+                    isActive: updates.isActive
+                }),
                 ...(updates.defaultValue !== undefined && {
                     defaultValue:
                         updates.defaultValue as Prisma.InputJsonValue

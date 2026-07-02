@@ -16,6 +16,7 @@ import { EvaluationService } from '../modules/evaluation/evaluation.service';
 
 import { RolloutEngine } from '../modules/evaluation/rollout.engine';
 
+import { AuditController } from '../modules/audit/audit.controller';
 import { TenantController } from '../modules/tenants/tenant.controller';
 import { FlagController } from '../modules/flags/flag.controller';
 import { EvaluationController } from '../modules/evaluation/evaluation.controller';
@@ -35,7 +36,7 @@ const auditRepository = new AuditRepository(prisma);
 
 const tenantService = new TenantService(tenantRepository, apiKeyRepository);
 
-const auditService = new AuditService(auditRepository);
+const auditService = new AuditService(auditRepository, flagRepository);
 
 const flagService = new FlagService(flagRepository, auditService);
 
@@ -48,6 +49,8 @@ const evaluationService = new EvaluationService(
     flagRepository,
     rolloutEngine
 );
+
+const auditController = new AuditController(auditService);
 
 const tenantController = new TenantController(tenantService);
 
@@ -77,6 +80,18 @@ router.post(
     flagController.createFlag
 );
 
+router.put(
+    '/api/v1/tenants/:tenantId/flags/:flagKey',
+    apiKeyMiddleware.authenticate,
+    flagController.updateFlag
+);
+
+router.delete(
+    '/api/v1/tenants/:tenantId/flags/:flagKey',
+    apiKeyMiddleware.authenticate,
+    flagController.archiveFlag
+);
+
 router.post(
     "/api/v1/evaluate",
     apiKeyMiddleware.authenticate,
@@ -87,6 +102,12 @@ router.post(
     "/api/v1/evaluate/bulk",
     apiKeyMiddleware.authenticate,
     evaluationController.evaluateBulk
+);
+
+router.get(
+    "/api/v1/tenants/:tenantId/flags/:flagKey/history",
+    adminApiKeyMiddleware.authenticate,
+    auditController.getHistory.bind(auditController)
 );
 
 router.get(

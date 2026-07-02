@@ -1,11 +1,15 @@
 import { AuditRepository } from './audit.repository';
+import { FlagRepository } from './../flags/flag.repository';
 import { AuditAction } from './audit-action';
 import { AuditData } from "./audit-data";
+import { NotFoundError } from "../../shared/errors/notfound.error";
+import { Environment } from "@prisma/client";
 
 export class AuditService {
 
 constructor(
-        private auditRepository: AuditRepository
+        private readonly auditRepository: AuditRepository,
+        private readonly flagRepository: FlagRepository
     ) {}
 
     async log(params: {
@@ -16,7 +20,6 @@ constructor(
         newValue?: AuditData;
         changedBy?: string;
     }) {
-
         await this.auditRepository.insert({
             tenantId: params.tenantId,
             flagId: params.flagId,
@@ -29,11 +32,22 @@ constructor(
 
     async getHistory(
         tenantId: string,
-        flagId: string
+        flagKey: string,
+        environment: Environment
     ) {
+        const flag = await this.flagRepository.findByKey(
+            tenantId,
+            flagKey,
+            environment
+        );
+
+        if (!flag) {
+            throw new NotFoundError("Feature flag not found.");
+        }
+
         return this.auditRepository.getHistory(
             tenantId,
-            flagId
+            flag.id
         );
     }
 }
