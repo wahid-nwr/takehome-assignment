@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { AuditService } from "./audit.service";
+import { Environment } from "@prisma/client";
 
 export class AuditController {
 
@@ -7,19 +8,25 @@ constructor(
         private readonly auditService: AuditService
     ) {}
 
-    async getHistory(
+    getHistory = async (
         req: Request,
-        res: Response
-    ): Promise<void> {
+        res: Response,
+        next: NextFunction
+    ) => {
 
-        const tenantId = req.tenant!.id;
-        const flagKey = req.params.flagKey;
+        try {
+            const tenantId = req.params.tenantId;
+            const flagKey = req.params.flagKey;
 
-        const history = await this.auditService.getHistory(
-            tenantId,
-            flagKey
-        );
+            const history = await this.auditService.getHistory(
+                tenantId,
+                flagKey,
+                req.query.environment as Environment
+            );
 
-        res.json(history);
-    }
+            res.json(history);
+        } catch (error) {
+            next(error);
+        }
+    };
 }

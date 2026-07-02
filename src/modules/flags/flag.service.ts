@@ -22,17 +22,15 @@ export class FlagService {
         request: CreateFlagRequest
     ) {
 
-        console.log("Received environment:", request.environment);
-        console.log("Valid environments:", Object.values(Environment));
         if (!Object.values(Environment).includes(request.environment)) {
             throw new ValidationError("Invalid environment.");
         }
 
-        FlagValidator.validateCreate(request);
-
         request.key = request.key.trim();
         request.name = request.name.trim();
         request.description = request.description?.trim();
+
+        FlagValidator.validateCreate(request);
 
         const existing =
             await this.flagRepository.findByKey(
@@ -87,14 +85,14 @@ export class FlagService {
 
     async updateFlag(
         tenantId: string,
-        flagId: string,
+        flagKey: string,
         request: UpdateFlagRequest
     ) {
-
+        console.log("flagKey->" + flagKey);
         const existing =
-            await this.flagRepository.findById(
+            await this.flagRepository.findByKey(
                 tenantId,
-                flagId
+                flagKey
             );
 
         if (!existing) {
@@ -129,7 +127,7 @@ export class FlagService {
                 );
             }
         }
-
+        const flagId = existing.id;
         const updated =
             await this.flagRepository.update(
                 tenantId,
@@ -150,13 +148,13 @@ export class FlagService {
 
     async archiveFlag(
         tenantId: string,
-        flagId: string
+        flagKey: string
     ) {
 
         const existing =
-            await this.flagRepository.findById(
+            await this.flagRepository.findByKey(
                 tenantId,
-                flagId
+                flagKey
             );
 
         if (!existing) {
@@ -164,7 +162,7 @@ export class FlagService {
                 "Feature flag not found."
             );
         }
-
+        const flagId = existing.id;
         const archived =
             await this.flagRepository.archive(
                 tenantId,
