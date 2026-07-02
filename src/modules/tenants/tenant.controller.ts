@@ -5,7 +5,7 @@ import { NotFoundError } from "../../shared/errors/notfound.error";
 export class TenantController {
 
 constructor(
-        private tenantService: TenantService
+        private readonly tenantService: TenantService
     ) {}
 
     createTenant = async (

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { AuditService } from "./audit.service";
+import { Environment } from "@prisma/client";
 
 export class AuditController {
 
@@ -16,8 +17,6 @@ constructor(
         try {
             const tenantId = req.params.tenantId;
             const flagKey = req.params.flagKey;
-
-            console.log(req.query.environment as Environment);
 
             const history = await this.auditService.getHistory(
                 tenantId,

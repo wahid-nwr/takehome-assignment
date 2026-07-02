@@ -3,7 +3,7 @@ import { FlagRepository } from './../flags/flag.repository';
 import { AuditAction } from './audit-action';
 import { AuditData } from "./audit-data";
 import { NotFoundError } from "../../shared/errors/notfound.error";
-
+import { Environment } from "@prisma/client";
 
 export class AuditService {
 
@@ -33,7 +33,7 @@ constructor(
     async getHistory(
         tenantId: string,
         flagKey: string,
-        environment: string
+        environment: Environment
     ) {
         const flag = await this.flagRepository.findByKey(
             tenantId,
