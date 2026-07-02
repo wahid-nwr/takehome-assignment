@@ -52,7 +52,7 @@ constructor(
 
             const flag = await this.flagService.updateFlag(
                 req.tenant!.id,
-                req.params.flagId,
+                req.params.flagKey,
                 req.body
             );
 
@@ -72,7 +72,7 @@ constructor(
 
             await this.flagService.archiveFlag(
                 req.tenant!.id,
-                req.params.flagId
+                req.params.flagKey
             );
 
             res.status(204).send();

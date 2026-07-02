@@ -228,7 +228,7 @@ cd <repository-name>
 Create a `.env` file from the provided example and update the required values.
 
 ```bash
-cp .env.example .env
+cp .env.example .env.local
 ```
 
 Configure the database, Redis, and application settings as required.
@@ -291,16 +291,17 @@ The service exposes RESTful APIs for managing feature flags and evaluating featu
 
 ## Core Endpoints
 
-| Method | Endpoint                                     | Description                                   |
-| ------ | -------------------------------------------- | --------------------------------------------- |
-| POST   | `/api/v1/tenants`                            | Register a new tenant.                        |
-| POST   | `/api/v1/tenants/{tenantId}/flags`           | Create a feature flag.                        |
-| GET    | `/api/v1/tenants/{tenantId}/flags`           | List feature flags.                           |
-| PUT    | `/api/v1/tenants/{tenantId}/flags/{flagKey}` | Update an existing feature flag.              |
-| DELETE | `/api/v1/tenants/{tenantId}/flags/{flagKey}` | Archive a feature flag.                       |
-| POST   | `/api/v1/evaluate`                           | Evaluate a feature flag for a user.           |
-| POST   | `/api/v1/evaluate/bulk`                      | Evaluate all active feature flags for a user. |
-| GET    | `/health`                                    | Application health check.                     |
+| Method | Endpoint                                                          | Description                                   |
+|--------|-------------------------------------------------------------------|-----------------------------------------------|
+| POST   | `/api/v1/tenants`                                                 | Register a new tenant.                        |
+| POST   | `/api/v1/tenants/{tenantId}/flags`                                | Create a feature flag.                        |
+| GET    | `/api/v1/tenants/{tenantId}/flags`                                | List feature flags.                           |
+| PUT    | `/api/v1/tenants/{tenantId}/flags/{flagKey}`                      | Update an existing feature flag.              |
+| DELETE | `/api/v1/tenants/{tenantId}/flags/{flagKey}`                      | Archive a feature flag.                       |
+| GET    | `/api/v1/tenants/{tenantId}/flags/{flagKey}/history?environment=` | Get Feature flag history.                     |
+| POST   | `/api/v1/evaluate`                                                | Evaluate a feature flag for a user.           |
+| POST   | `/api/v1/evaluate/bulk`                                           | Evaluate all active feature flags for a user. |
+| GET    | `/health`                                                         | Application health check.                     |
 
 ## Example: Create new tenant
 **Request**
