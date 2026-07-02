@@ -63,27 +63,37 @@ The primary objective of this project is to demonstrate practical software engin
 
 ## Assignment Coverage
 
-| Requirement                                | Status |
-| ------------------------------------------ | :----: |
-| Multi-tenant feature management            |    ✅   |
-| Feature flag CRUD                          |    ✅   |
-| Environment-scoped configuration           |    ✅   |
-| Deterministic percentage rollouts          |    ✅   |
-| Bulk evaluation endpoint                   |    ✅   |
-| PostgreSQL persistence                     |    ✅   |
-| Redis caching                              |    ✅   |
-| Docker & Docker Compose                    |    ✅   |
-| Terraform infrastructure                   |    ✅   |
-| Cloud Run deployment                       |    ✅   |
-| GitHub Actions CI/CD                       |    ✅   |
-| Separate staging & production environments |    ✅   |
-| Runtime service accounts                   |    ✅   |
-| Workload Identity Federation               |    ✅   |
-| Real-time distribution (SSE/WebSocket)     |    ❌   |
-| Cloud Monitoring dashboards & alerts       |    ❌   |
-| Secret Manager integration                 |    ❌   |
-| Load testing                               |    ❌   |
-| Automated rollback / traffic splitting     |    ❌   |
+| Requirement                                         | Status |
+| --------------------------------------------------- | :----: |
+| Multi-tenant feature management                     |    ✅   |
+| Feature flag CRUD                                   |    ✅   |
+| Environment-scoped configuration                    |    ✅   |
+| Deterministic percentage rollouts                   |    ✅   |
+| Single feature evaluation API                       |    ✅   |
+| Bulk evaluation API                                 |    ✅   |
+| PostgreSQL persistence                              |    ✅   |
+| Redis caching                                       |    ✅   |
+| Immutable audit history                             |    ✅   |
+| Service API Key authentication                      |    ✅   |
+| Tenant API Key authentication                       |    ✅   |
+| Structured logging (Pino)                           |    ✅   |
+| Correlation IDs                                     |    ✅   |
+| Prometheus metrics                                  |    ✅   |
+| Health endpoints                                    |    ✅   |
+| Docker & Docker Compose                             |    ✅   |
+| Terraform infrastructure                            |    ✅   |
+| Google Cloud Run deployment                         |    ✅   |
+| Cloud SQL (PostgreSQL)                              |    ✅   |
+| Memorystore (Redis)                                 |    ✅   |
+| GitHub Actions CI/CD                                |    ✅   |
+| Separate staging & production environments          |    ✅   |
+| Automated database migrations                       |    ✅   |
+| k6 load testing                                     |    ✅   |
+| Real-time distribution (SSE/WebSocket)              |    ❌   |
+| Cloud Monitoring dashboards & alerts                |    ❌   |
+| Google Secret Manager integration                   |    ✅   |
+| Progressive delivery (traffic splitting / rollback) |    ❌   |
+
 
 
 # Technology Stack
@@ -303,6 +313,7 @@ The service exposes RESTful APIs for managing feature flags and evaluating featu
 | POST   | `/api/v1/evaluate/bulk`                                           | Evaluate all active feature flags for a user. |
 | GET    | `/health`                                                         | Application health check.                     |
 
+Note: Feature flags are uniquely identified by the combination of tenantId, flagKey, and environment. Therefore, the environment query parameter is required to uniquely identify the flag whose audit history is being requested.
 ## Example: Create new tenant
 **Request**
 
@@ -314,9 +325,7 @@ Content-Type: application/json
 
 ```json
 {
-  "environment": "production",
-  "userId": "user-456",
-  "flagKey": "new-checkout"
+  "name": "Acme"
 }
 ```
 
@@ -324,8 +333,9 @@ Content-Type: application/json
 
 ```json
 {
+  "id": "6e1e4925-xxxxxxxxxxxxxxxx",
   "name": "Acme",
-  "apiKey": "ff_live_xxxxxxxxxxxxxxxxx"
+  "apiKey": "98c2c069-xxxxxxxxxxxxxxxxx"
 }
 ```
 
@@ -356,18 +366,6 @@ Authorization: Bearer ff_live_xxxxxxxxxxxxxxxxx
   "reason": "percentage-rollout"
 }
 ```
-
-## Response Codes
-
-| Status Code | Description                       |
-| ----------- | --------------------------------- |
-| 200         | Request completed successfully.   |
-| 201         | Resource created successfully.    |
-| 400         | Invalid request payload.          |
-| 401         | Authentication failed.            |
-| 404         | Requested resource was not found. |
-| 500         | Unexpected server error.          |
-
 
 ## Authentication
 
@@ -561,10 +559,10 @@ The application is packaged using a multi-stage Docker build to produce a lightw
 
 The following security improvements were identified but were intentionally left out to keep the implementation focused on the core assignment requirements:
 
-* Secret Manager integration for application secrets
-* Automated secret rotation
 * API rate limiting
-* Additional audit and monitoring policies
+* Security audit logging enhancements
+* Cloud Armor / WAF
+* Automated vulnerability scanning
 
 
 # Design Decisions
@@ -621,7 +619,7 @@ These tests execute automatically as part of the Continuous Integration pipeline
 
 The feature evaluation engine is the most critical component of the system because incorrect evaluations directly affect application behavior. For this reason, testing effort was concentrated on deterministic behavior and business rule correctness rather than maximizing code coverage.
 
-The CI pipeline validates every change by building the application, executing the automated test suite, and publishing test coverage artifacts.
+The CI pipeline validates every change by building the application and executing the automated test suite.
 
 ## Performance Testing
 
@@ -636,13 +634,13 @@ The feature evaluation endpoint was load tested using k6 with a ramping workload
 
 **Results (Local Development)**
 
-| Metric | Result |
-|--------|--------|
-| Requests | 2,025 |
-| Failed Requests | 0.00% |
-| Average Latency | 2.31 ms |
-| P95 Latency | 4.69 ms |
-| Maximum Latency | 28.87 ms |
+| Metric          | Result    |
+| --------------- | --------- |
+| Failed Requests | **0.00%** |
+| Average Latency | **~3 ms** |
+| P95 Latency     | **~5 ms** |
+| P99 Latency     | **~6 ms** |
+
 
 The service completed all requests successfully while maintaining consistently low response times.
 
@@ -654,7 +652,7 @@ Given additional time, the following tests would be added:
 * Tenant isolation tests to verify strict separation between tenants
 * Environment-scoped evaluation tests
 * Infrastructure validation tests for Terraform modules
-* Load testing of the evaluation endpoints using a tool such as k6 or Artillery
+* Stress testing under sustained high concurrency
 * Performance benchmarking for Redis cache effectiveness under concurrent workloads
 
 
@@ -662,25 +660,25 @@ Given additional time, the following tests would be added:
 
 The current implementation focuses on the core requirements of the assignment while maintaining a clean and maintainable architecture. Given additional time, the following enhancements would be considered:
 
-* **Real-time feature distribution** using Server-Sent Events (SSE) or WebSockets to notify clients immediately when feature flags change.
-* **Advanced targeting rules** to support user attributes, segments, and conditional feature evaluation beyond percentage-based rollouts.
-* **Cloud Monitoring dashboards and alerting** for application health, latency, error rates, and infrastructure metrics.
-* **Google Cloud Secret Manager** integration to centrally manage application secrets and database credentials.
-* **Load and performance testing** to validate throughput, latency, and cache effectiveness under concurrent workloads.
-* **Expanded automated testing**, including end-to-end API tests, tenant isolation tests, and infrastructure validation.
-* **Progressive deployment strategies**, such as traffic splitting or automated rollback for safer production releases.
+* **Real-time feature distribution** (SSE/WebSockets)
+* **Advanced targeting rules** (attributes, segments)
+* **Cloud Monitoring dashboards & alerting**
+* **Expanded end-to-end and infrastructure testing**
+* **Progressive delivery** (traffic splitting/automatic rollback)
 
 These improvements build upon the existing architecture without requiring significant changes to the overall system design.
 
 
 # Deployment Information
 
-The application is deployed to Google Cloud Platform with separate staging and production environments.
+The application is deployed to Google Cloud Platform using separate staging and production environments.
 
-| Environment | URL                | Status |
-| ----------- | ------------------ | ------ |
-| Staging     | `<staging-url>`    | Active |
-| Production  | `<production-url>` | Active |
+| Environment | URL | Access |
+|------------|-----|:------:|
+| Staging | `https://feature-flag-service-staging-538214708008.asia-southeast1.run.app` | Public |
+| Production | `https://feature-flag-service-production-797932831970.asia-southeast1.run.app` | Private |
+
+> **Note:** The staging deployment is publicly accessible to simplify evaluation and API verification. The production deployment remains private to better reflect a production-oriented deployment configuration.
 
 ## Health Endpoint
 

@@ -50,11 +50,6 @@ constructor(
                     req.params.id
                 );
 
-            /*if (!tenant) {
-                return res.status(404).json({
-                    message: 'Tenant not found'
-                });
-            }*/
             if (!tenant) {
                 throw new NotFoundError("Tenant not found");
             }
