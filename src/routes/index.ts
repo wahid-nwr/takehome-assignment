@@ -24,6 +24,9 @@ import { EvaluationController } from '../modules/evaluation/evaluation.controlle
 import { createCacheService } from "../shared/cache/cache.factory";
 import { register } from "../metrics/metrics";
 
+import swaggerUi from "swagger-ui-express";
+import { openApiSpec } from "../docs/openapi";
+
 const router = Router();
 
 const tenantRepository = new TenantRepository(prisma);
@@ -132,5 +135,7 @@ router.get("/db", async (req, res) => {
         database: "connected"
     });
 });
+
+router.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiSpec));
 
 export default router;
