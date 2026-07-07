@@ -63,7 +63,18 @@ variable "deletion_protection" {
 }
 
 variable "env_vars" {
-  description = "Application environment variables"
+  description = "Plain (non-sensitive) application environment variables"
+  type        = map(string)
+  default     = {}
+}
+
+variable "secret_env_vars" {
+  description = <<-EOT
+    Environment variables sourced from Secret Manager instead of plain text.
+    Map of ENV_VAR_NAME -> secret_id (as returned by the secret module's
+    secret_ids output). Always resolves the "latest" version.
+    Use this for credentials (DATABASE_URL, REDIS_URL, etc.) instead of env_vars.
+  EOT
   type        = map(string)
   default     = {}
 }

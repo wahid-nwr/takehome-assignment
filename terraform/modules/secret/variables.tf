@@ -3,17 +3,18 @@ variable "project_id" {
   type        = string
 }
 
-variable "region" {
-  type = string
-}
-
 variable "name_prefix" {
   description = "Prefix applied to every secret_id created by this module, e.g. \"feature-flag-production\""
   type        = string
 }
 
-variable "secrets" {
-  description = "Map of logical secret name -> secret value (e.g. { database-url = \"postgresql://...\" })"
+variable "secret_names" {
+  description = "Logical names of the secrets to create, e.g. [\"database-url\", \"redis-url\"]. Must NOT be derived from a sensitive value — used as the for_each key."
+  type        = list(string)
+}
+
+variable "secret_values" {
+  description = "Map of logical secret name -> secret value (e.g. { database-url = \"postgresql://...\" }). Keys must exactly match secret_names."
   type        = map(string)
   sensitive   = true
 }

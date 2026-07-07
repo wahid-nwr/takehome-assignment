@@ -53,6 +53,23 @@ resource "google_cloud_run_v2_service" "api" {
           value = env.value
         }
       }
+
+      # Sensitive config (DB/Redis connection strings, etc.) is injected from
+      # Secret Manager at container start rather than as plain-text env vars.
+      dynamic "env" {
+        for_each = var.secret_env_vars
+
+        content {
+          name = env.key
+
+          value_source {
+            secret_key_ref {
+              secret  = env.value
+              version = "latest"
+            }
+          }
+        }
+      }
     }
   }
 
