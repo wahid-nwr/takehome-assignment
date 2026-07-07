@@ -3,17 +3,24 @@ export const evaluationSchemas = {
         type: "object",
 
         required: [
-            "flagKey",
-            "userId"
+            "environment",
+            "userId",
+            "context"
         ],
 
         properties: {
-            flagKey: {
+            environment: {
                 type: "string",
-                example: "checkout-redesign"
+                enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"],
+                example: "DEVELOPMENT"
             },
 
             userId: {
+                type: "string",
+                example: "user-123"
+            },
+
+            context: {
                 type: "string",
                 example: "user-123"
             }
@@ -24,7 +31,7 @@ export const evaluationSchemas = {
         type: "object",
 
         properties: {
-            enabled: {
+            flag: {
                 type: "boolean",
                 example: true
             }

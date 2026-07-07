@@ -29,10 +29,10 @@ export const openApiSpec = {
 
     components: {
         securitySchemes: {
-            ApiKeyAuth: {
-                type: "apiKey",
-                in: "header",
-                name: "x-api-key"
+            BearerAuth: {
+                type: "http",
+                scheme: "bearer",
+                bearerFormat: "JWT"
             }
         },
 
@@ -46,7 +46,7 @@ export const openApiSpec = {
 
     security: [
         {
-            ApiKeyAuth: []
+            BearerAuth: []
         }
     ],
 
@@ -84,6 +84,35 @@ export const openApiSpec = {
                             "application/json": {
                                 schema: {
                                     $ref: "#/components/schemas/Tenant"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/api/v1/tenants/:tenantId/flags": {
+            post: {
+                tags: ["Flags"],
+                summary: "Create flag",
+                requestBody: {
+                    required: true,
+                    content: {
+                        "application/json": {
+                            schema: {
+                                $ref: "#/components/schemas/CreateFlagRequest"
+                            }
+                        }
+                    }
+                },
+                responses: {
+                    "200": {
+                        description: "Flag created",
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    $ref: "#/components/schemas/Flag"
                                 }
                             }
                         }

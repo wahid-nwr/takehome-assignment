@@ -4,30 +4,47 @@ export const flagSchemas = {
 
         properties: {
             id: {
-            type: "string",
-            format: "uuid"
+                type: "string",
+                format: "uuid"
             },
 
             key: {
-            type: "string",
-            example: "checkout-redesign"
+                type: "string",
+                example: "checkout-redesign"
             },
 
-            enabled: {
-            type: "boolean",
-            example: true
+            name: {
+                type: "string",
+                example: "checkout-redesign"
+            },
+
+            type: {
+                type: "string",
+                enum: ["BOOLEAN", "STRING", "NUMBER"],
+                example: "BOOLEAN"
+            },
+
+            defaultValue: {
+                type: "string",
+                example: "true"
             },
 
             rolloutPercentage: {
-            type: "integer",
-            minimum: 0,
-            maximum: 100,
-            example: 50
+                type: "integer",
+                minimum: 0,
+                maximum: 100,
+                example: 50
+            },
+
+            environment: {
+                type: "string",
+                enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"],
+                example: "DEVELOPMENT"
             },
 
             createdAt: {
-            type: "string",
-            format: "date-time"
+                type: "string",
+                format: "date-time"
             }
         }
     },
@@ -45,14 +62,28 @@ export const flagSchemas = {
                 type: "string"
             },
 
-            enabled: {
-                type: "boolean"
+            name: {
+                type: "string"
+            },
+
+            type: {
+                type: "string",
+                enum: ["BOOLEAN", "STRING", "NUMBER"]
+            },
+
+            defaultValue: {
+                type: "string"
             },
 
             rolloutPercentage: {
                 type: "integer",
                 minimum: 0,
                 maximum: 100
+            },
+
+            environment: {
+                type: "string",
+                enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"]
             }
         }
     },
@@ -61,8 +92,8 @@ export const flagSchemas = {
         type: "object",
 
         properties: {
-            enabled: {
-                type: "boolean"
+            defaultValue: {
+                type: "string"
             },
 
             rolloutPercentage: {

@@ -3,10 +3,9 @@ import crypto from "crypto";
 import { CacheService } from "../../shared/cache/cache.service";
 import { FlagRepository } from "./../flags/flag.repository";
 import { RolloutEngine } from "./rollout.engine";
-import { Environment, FlagType } from "@prisma/client";
+import { Environment, FlagType, FeatureFlag } from "@prisma/client";
 import { EvaluationRequest } from "./evaluation-request";
 import { BulkEvaluationRequest } from "./dto/bulk-evaluation-request";
-import { FeatureFlag } from "@prisma/client";
 
 export class EvaluationService {
     constructor(
