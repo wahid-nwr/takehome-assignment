@@ -73,6 +73,39 @@ resource "google_cloud_run_v2_service" "api" {
     }
   }
 
+  # --- Canary / blue-green traffic split -----------------------------------
+  # Two independent dynamic blocks instead of one conditional list — mixing
+  # `revision = null` (LATEST target) and `revision = <string>` (REVISION
+  # target) inside a single ternary's object list trips Terraform's dynamic
+  # block type unification. Each block below is internally homogeneous, so
+  # there's nothing to unify.
+
+  # Target 1: the LATEST revision (the one just deployed) — always present.
+  # 100% when there's no stable_revision to split against yet (e.g. first
+  # deploy); otherwise gets canary_percent% while stable_revision holds the rest.
+  dynamic "traffic" {
+    for_each = [1]
+
+    content {
+      type    = "TRAFFIC_TARGET_ALLOCATION_TYPE_LATEST"
+      percent = var.stable_revision == null ? 100 : var.canary_percent
+      tag     = var.stable_revision == null ? "live" : "canary"
+    }
+  }
+
+  # Target 2: the pinned last-known-good revision — only present once
+  # stable_revision is supplied (i.e. from the second deploy onward).
+  dynamic "traffic" {
+    for_each = var.stable_revision == null ? [] : [var.stable_revision]
+
+    content {
+      type     = "TRAFFIC_TARGET_ALLOCATION_TYPE_REVISION"
+      revision = traffic.value
+      percent  = 100 - var.canary_percent
+      tag      = "stable"
+    }
+  }
+
   ingress = var.ingress
 }
 

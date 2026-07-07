@@ -1,6 +1,7 @@
 resource "google_cloud_run_v2_job" "migration" {
 
   name = "${var.name}-migration"
+  project  = var.project_id
   location = var.region
 
   template {

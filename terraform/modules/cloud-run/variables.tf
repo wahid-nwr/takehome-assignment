@@ -106,3 +106,30 @@ variable "invoker_members" {
   type        = list(string)
   default     = []
 }
+
+variable "canary_percent" {
+  description = <<-EOT
+    Percent of traffic (0-100) routed to the LATEST revision (the one just deployed).
+    The remainder goes to stable_revision. Default 100 = simple full cutover,
+    identical to previous behavior (no split). Set below 100 together with
+    stable_revision to canary a new deploy before fully promoting it.
+  EOT
+  type        = number
+  default     = 100
+
+  validation {
+    condition     = var.canary_percent >= 0 && var.canary_percent <= 100
+    error_message = "canary_percent must be between 0 and 100."
+  }
+}
+
+variable "stable_revision" {
+  description = <<-EOT
+    Name of the last known-good revision to keep serving (100 - canary_percent)%
+    of traffic. Pass the previous deploy's latest_ready_revision output here.
+    Leave null for a plain 100%-to-latest deploy (e.g. first-ever deploy, or
+    when you don't want traffic splitting).
+  EOT
+  type    = string
+  default = null
+}
