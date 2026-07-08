@@ -8,6 +8,11 @@ export const flagSchemas = {
                 format: "uuid"
             },
 
+            tenantId: {
+                type: "string",
+                format: "uuid"
+            },
+
             key: {
                 type: "string",
                 example: "checkout-redesign"
@@ -15,7 +20,13 @@ export const flagSchemas = {
 
             name: {
                 type: "string",
-                example: "checkout-redesign"
+                example: "Checkout Redesign"
+            },
+
+            description: {
+                type: "string",
+                nullable: true,
+                example: "Rolls out the new one-page checkout flow"
             },
 
             type: {
@@ -25,8 +36,20 @@ export const flagSchemas = {
             },
 
             defaultValue: {
-                type: "string",
-                example: "true"
+                description: "Default value returned when a user isn't in the rollout. Shape depends on `type` (boolean for BOOLEAN, string for STRING, number for NUMBER).",
+                example: false
+            },
+
+            isActive: {
+                type: "boolean",
+                description: "Whether the flag is currently toggled on.",
+                example: true
+            },
+
+            isArchived: {
+                type: "boolean",
+                description: "Soft-delete flag. Archived flags are excluded from evaluation and default list views.",
+                example: false
             },
 
             rolloutPercentage: {
@@ -45,6 +68,11 @@ export const flagSchemas = {
             createdAt: {
                 type: "string",
                 format: "date-time"
+            },
+
+            updatedAt: {
+                type: "string",
+                format: "date-time"
             }
         }
     },
@@ -54,8 +82,59 @@ export const flagSchemas = {
 
         required: [
             "key",
-            "enabled"
+            "name",
+            "type",
+            "defaultValue",
+            "environment",
+            "rolloutPercentage"
         ],
+
+        properties: {
+            key: {
+                type: "string",
+                example: "checkout-redesign"
+            },
+
+            name: {
+                type: "string",
+                example: "Checkout Redesign"
+            },
+
+            description: {
+                type: "string",
+                example: "Rolls out the new one-page checkout flow"
+            },
+
+            type: {
+                type: "string",
+                enum: ["BOOLEAN", "STRING", "NUMBER"],
+                example: "BOOLEAN"
+            },
+
+            defaultValue: {
+                description: "Must match `type` (boolean/string/number).",
+                example: false
+            },
+
+            environment: {
+                type: "string",
+                enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"],
+                example: "DEVELOPMENT"
+            },
+
+            rolloutPercentage: {
+                type: "integer",
+                minimum: 0,
+                maximum: 100,
+                example: 0
+            }
+        }
+    },
+
+    UpdateFlagRequest: {
+        type: "object",
+
+        description: "All fields optional — only what's supplied gets updated.",
 
         properties: {
             key: {
@@ -66,40 +145,32 @@ export const flagSchemas = {
                 type: "string"
             },
 
+            description: {
+                type: "string"
+            },
+
             type: {
                 type: "string",
                 enum: ["BOOLEAN", "STRING", "NUMBER"]
             },
 
             defaultValue: {
-                type: "string"
-            },
-
-            rolloutPercentage: {
-                type: "integer",
-                minimum: 0,
-                maximum: 100
+                description: "Must match `type` (boolean/string/number)."
             },
 
             environment: {
                 type: "string",
                 enum: ["DEVELOPMENT", "STAGING", "PRODUCTION"]
-            }
-        }
-    },
-
-    UpdateFlagRequest: {
-        type: "object",
-
-        properties: {
-            defaultValue: {
-                type: "string"
             },
 
             rolloutPercentage: {
                 type: "integer",
                 minimum: 0,
                 maximum: 100
+            },
+
+            isActive: {
+                type: "boolean"
             }
         }
     }
