@@ -1,6 +1,7 @@
 resource "google_cloud_run_v2_job" "migration" {
 
-  name     = "${var.name}-migration"
+  name = "${var.name}-migration"
+  project  = var.project_id
   location = var.region
 
   template {
@@ -23,7 +24,13 @@ resource "google_cloud_run_v2_job" "migration" {
 
         env {
           name = "DATABASE_URL"
-          value = var.database_url
+
+          value_source {
+            secret_key_ref {
+              secret  = var.database_url_secret_id
+              version = "latest"
+            }
+          }
         }
 
       }

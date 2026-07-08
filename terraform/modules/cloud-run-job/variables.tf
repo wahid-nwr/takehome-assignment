@@ -18,9 +18,9 @@ variable "runtime_service_account" {
   type = string
 }
 
-variable "database_url" {
-  type      = string
-  sensitive = true
+variable "database_url_secret_id" {
+  description = "Secret Manager secret_id holding the DATABASE_URL connection string"
+  type        = string
 }
 
 variable "vpc_connector" {

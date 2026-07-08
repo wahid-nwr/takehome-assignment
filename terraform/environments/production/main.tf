@@ -14,6 +14,9 @@ locals {
   min_instances = 1
   max_instances = 10
 
+  # NOTE: these locals hold real credentials and only ever flow into
+  # Secret Manager (module.secrets below) or Terraform state — never into a
+  # Cloud Run env var directly. Cloud Run reads them via secret_key_ref.
   database_url = format(
     "postgresql://%s:%s@%s:5432/%s",
     module.cloud_sql.username,
@@ -29,10 +32,10 @@ locals {
   )
 
   app_env = {
-    NODE_ENV     = "production"
-    DATABASE_URL = local.database_url
-    REDIS_URL    = local.redis_url
+    NODE_ENV = "production"
   }
+
+  runtime_service_account_member = "serviceAccount:${var.runtime_service_account}"
 }
 
 module "networking" {
@@ -44,6 +47,27 @@ module "networking" {
   region = var.region
 
   network_name = "ff-production"
+
+  labels = local.labels
+}
+
+module "secrets" {
+
+  source = "../../modules/secret"
+
+  project_id  = var.project_id
+  name_prefix = "feature-flag-production"
+
+  secret_names = ["database-url", "redis-url"]
+
+  secret_values = {
+    database-url = local.database_url
+    redis-url    = local.redis_url
+  }
+
+  accessors = [
+    local.runtime_service_account_member
+  ]
 
   labels = local.labels
 }
@@ -69,6 +93,11 @@ module "cloud_run" {
   max_instances = local.max_instances
 
   env_vars = local.app_env
+
+  secret_env_vars = {
+    DATABASE_URL = module.secrets.secret_ids["database-url"]
+    REDIS_URL    = module.secrets.secret_ids["redis-url"]
+  }
 
   labels = local.labels
   service_account_email = var.runtime_service_account
@@ -130,6 +159,6 @@ module "cloud_run_job" {
   region                  = var.region
   container_image         = var.container_image
   runtime_service_account = var.runtime_service_account
-  database_url            = local.database_url
+  database_url_secret_id  = module.secrets.secret_ids["database-url"]
   vpc_connector           = module.networking.vpc_connector
 }
