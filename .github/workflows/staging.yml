@@ -96,8 +96,8 @@ jobs:
         run: |
           terraform apply \
             -input=false \
-            -auto-approve tfplan \
-            -var="service_api_key=${{ secrets.SERVICE_API_KEY }}"
+            -auto-approve \
+            tfplan
 
       - name: Run database migrations
         run: |
