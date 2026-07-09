@@ -11,8 +11,12 @@ locals {
   redis_tier     = "BASIC"
   redis_memory   = 1
 
-  min_instances = 1
-  max_instances = 10
+  min_instances = 0
+  max_instances = 1
+
+  depends_on = [
+    module.secrets
+  ]
 
   # NOTE: these locals hold real credentials and only ever flow into
   # Secret Manager (module.secrets below) or Terraform state — never into a

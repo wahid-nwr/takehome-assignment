@@ -13,6 +13,7 @@ resource "google_sql_database_instance" "this" {
 
   settings {
     tier = var.tier
+    activation_policy = var.cloud_sql_activation_policy
     edition = "ENTERPRISE"
 
     availability_type = "ZONAL"

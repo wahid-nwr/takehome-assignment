@@ -22,3 +22,18 @@ variable "invoker_members" {
 variable "runtime_service_account" {
   type = string
 }
+
+variable "enable_redis" {
+  type    = bool
+  default = false
+}
+
+variable "cloud_sql_activation_policy" {
+  type    = string
+  default = "ALWAYS"
+}
+
+variable "service_api_key" {
+  type      = string
+  sensitive = true
+}
