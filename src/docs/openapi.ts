@@ -71,6 +71,35 @@ export const openApiSpec = {
                 }
             }
         },
+        "/db": {
+            get: {
+                tags: ["Health"],
+                security: [],
+                summary: "Database connectivity check",
+                description: "Checks whether the application can connect to the database.",
+                responses: {
+                    "200": {
+                        description: "Database connection is healthy",
+                        content: {
+                            "application/json": {
+                                schema: {
+                                    type: "object",
+                                    properties: {
+                                        status: {
+                                            type: "string",
+                                            example: "ok"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        description: "Database connection failed"
+                    }
+                }
+            }
+        },
 
         "/api/v1/tenants": {
             post: {
