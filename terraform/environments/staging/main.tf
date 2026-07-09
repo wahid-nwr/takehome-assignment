@@ -8,15 +8,15 @@ locals {
   service_name = "feature-flag-service-staging"
 
   cloud_sql_tier = "db-custom-2-4096"
-  redis_tier     = "BASIC"
-  redis_memory   = 1
 
-  min_instances = 1
-  max_instances = 10
+  redis_tier   = "BASIC"
+  redis_memory = 1
 
-  # NOTE: these locals hold real credentials and only ever flow into
-  # Secret Manager (module.secrets below) or Terraform state — never into a
-  # Cloud Run env var directly. Cloud Run reads them via secret_key_ref.
+  min_instances = 0
+  max_instances = 1
+
+  enable_redis = var.enable_redis
+
   database_url = format(
     "postgresql://%s:%s@%s:5432/%s",
     module.cloud_sql.username,
@@ -25,88 +25,63 @@ locals {
     module.cloud_sql.database_name
   )
 
-  redis_url = format(
+  redis_url = var.enable_redis ? format(
     "redis://%s:%s",
-    module.redis.host,
-    module.redis.port
-  )
+    module.redis[0].host,
+    module.redis[0].port
+  ) : null
 
   app_env = {
-    NODE_ENV = "production"
+    NODE_ENV = "staging"
   }
 
   runtime_service_account_member = "serviceAccount:${var.runtime_service_account}"
+
+  secret_names = concat(
+    [
+      "database-url",
+      "service-api-key"
+    ],
+      var.enable_redis ? [
+      "redis-url"
+    ] : []
+  )
+
+  secret_values = merge(
+    {
+      database-url    = local.database_url
+      service-api-key = var.service_api_key
+    },
+      var.enable_redis ? {
+      redis-url = local.redis_url
+    } : {}
+  )
+
+  secret_env_vars = merge(
+    {
+      DATABASE_URL    = "database-url"
+      SERVICE_API_KEY = "service-api-key"
+    },
+      var.enable_redis ? {
+      REDIS_URL = "redis-url"
+    } : {}
+  )
 }
+
 
 module "networking" {
-
   source = "../../modules/networking"
-
-  project_id = var.project_id
-
-  region = var.region
-
-  network_name = "ff-staging"
-
-  labels = local.labels
-}
-
-module "secrets" {
-
-  source = "../../modules/secret"
-
-  project_id  = var.project_id
-  name_prefix = "feature-flag-staging"
-
-  secret_names = ["database-url", "redis-url"]
-
-  secret_values = {
-    database-url = local.database_url
-    redis-url    = local.redis_url
-  }
-
-  accessors = [
-    local.runtime_service_account_member
-  ]
-
-  labels = local.labels
-}
-
-module "cloud_run" {
-
-  source = "../../modules/cloud-run"
 
   project_id = var.project_id
   region     = var.region
 
-  service_name = local.service_name
-
-  container_image = var.container_image
-
-  vpc_connector = module.networking.vpc_connector
-
-  cpu    = "1"
-  memory = "512Mi"
-
-  min_instances = local.min_instances
-
-  max_instances = local.max_instances
-
-  env_vars = local.app_env
-
-  secret_env_vars = {
-    DATABASE_URL = module.secrets.secret_ids["database-url"]
-    REDIS_URL    = module.secrets.secret_ids["redis-url"]
-  }
+  network_name = "ff-stg"
 
   labels = local.labels
-  service_account_email = var.runtime_service_account
-
-  invoker_members = var.invoker_members
 }
 
-module "cloud_sql" {
 
+module "cloud_sql" {
   source = "../../modules/cloud-sql"
 
   project_id = var.project_id
@@ -133,7 +108,9 @@ module "cloud_sql" {
   labels = local.labels
 }
 
+
 module "redis" {
+  count = var.enable_redis ? 1 : 0
 
   source = "../../modules/redis"
 
@@ -151,6 +128,60 @@ module "redis" {
   labels = local.labels
 }
 
+module "secrets" {
+  source = "../../modules/secret"
+
+  project_id  = var.project_id
+  name_prefix = "feature-flag-staging"
+
+  secret_names  = local.secret_names
+  secret_values = local.secret_values
+
+  accessors = [
+    local.runtime_service_account_member
+  ]
+
+  labels = local.labels
+}
+
+
+module "cloud_run" {
+  source = "../../modules/cloud-run"
+
+  project_id = var.project_id
+  region     = var.region
+
+  service_name = local.service_name
+
+  container_image = var.container_image
+
+  vpc_connector = module.networking.vpc_connector
+
+  cpu    = "1"
+  memory = "512Mi"
+
+  min_instances = local.min_instances
+  max_instances = local.max_instances
+
+  env_vars = local.app_env
+
+  secret_env_vars = {
+    for env_name, secret_name in local.secret_env_vars :
+    env_name => module.secrets.secret_ids[secret_name]
+  }
+
+  labels = local.labels
+
+  service_account_email = var.runtime_service_account
+
+  invoker_members = var.invoker_members
+
+  depends_on = [
+    module.secrets
+  ]
+}
+
+
 module "cloud_run_job" {
   source = "../../modules/cloud-run-job"
 
@@ -159,6 +190,12 @@ module "cloud_run_job" {
   region                  = var.region
   container_image         = var.container_image
   runtime_service_account = var.runtime_service_account
-  database_url_secret_id  = module.secrets.secret_ids["database-url"]
-  vpc_connector           = module.networking.vpc_connector
+
+  database_url_secret_id = module.secrets.secret_ids["database-url"]
+
+  vpc_connector = module.networking.vpc_connector
+
+  depends_on = [
+    module.secrets
+  ]
 }

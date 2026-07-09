@@ -10,5 +10,5 @@ output "cloud_sql_instance" {
 
 output "redis_instance" {
   description = "Redis instance name"
-  value = module.redis.instance_name
+  value = var.enable_redis ? module.redis[0].instance_name : null
 }

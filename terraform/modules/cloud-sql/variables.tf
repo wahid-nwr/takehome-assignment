@@ -25,6 +25,11 @@ variable "tier" {
   default = "db-f1-micro"
 }
 
+variable "cloud_sql_activation_policy" {
+  type    = string
+  default = "ALWAYS"
+}
+
 variable "username" {
   type = string
 }

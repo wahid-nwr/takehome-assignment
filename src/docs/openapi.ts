@@ -62,6 +62,7 @@ export const openApiSpec = {
         "/health": {
             get: {
                 tags: ["Health"],
+                security: [],
                 summary: "Health check",
                 responses: {
                     "200": {
